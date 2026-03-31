@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="BuGo2/Bugo_blazor.csproj" />
+  <Project Path="Bugo_api/Bugo_api.csproj" />
+  <Project Path="Bugo_shared/Bugo_shared.csproj" Id="d8d0e0fd-a6fc-447f-aaca-5522b2de770e" />
+</Solution>

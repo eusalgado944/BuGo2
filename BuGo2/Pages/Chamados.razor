@@ -1,0 +1,35 @@
+﻿@page "/chamados"
+@using Bugo.Shared.Models
+@inject HttpClient Http
+
+<h3>Chamados</h3>
+
+@foreach (var c in chamados)
+{
+    <p>
+        <b>@c.Titulo</b> - @c.Status
+    </p>
+}
+
+@code {
+    List<Chamado> chamados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        chamados = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados");
+    }
+}
+<input @bind="novo.Titulo" placeholder="Título" />
+<textarea @bind="novo.Descricao"></textarea>
+<button @onclick="Criar">Abrir</button>
+
+@code {
+    Chamado novo = new();
+
+    async Task Criar()
+    {
+        await Http.PostAsJsonAsync("api/chamados", novo);
+        novo = new Chamado();
+        chamados = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados");
+    }
+}
