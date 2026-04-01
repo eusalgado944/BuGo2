@@ -1,0 +1,164 @@
+﻿@page "/chamados2"
+@using Bugo_shared.Models
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+    .ch-root { font-family: 'DM Sans', sans-serif; padding: 2rem 0; }
+    .ch-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 2rem; }
+    .ch-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+    .ch-count-pill { background: #f5f5f3; border: 0.5px solid #e0e0dc; border-radius: 20px; font-size: 12px; color: #888; padding: 3px 10px; font-weight: 500; }
+
+    .ch-form-card { background: #fff; border: 0.5px solid #e0e0dc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .ch-form-section-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; color: #999; text-transform: uppercase; margin: 0 0 1.25rem; }
+    .ch-field { margin-bottom: 1rem; }
+    .ch-field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500; }
+    .ch-field input, .ch-field textarea { width: 100%; box-sizing: border-box; background: #fafaf8; border: 0.5px solid #e0e0dc; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s; resize: none; }
+    .ch-field input:focus, .ch-field textarea:focus { outline: none; border-color: #aaa; }
+
+    .ch-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #1a1a18; color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+    .ch-btn-primary:hover:not(:disabled) { opacity: 0.8; }
+    .ch-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ch-success-msg { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3B6D11; margin-left: 12px; }
+
+    .ch-list-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 500; margin: 0 0 1rem; }
+    .ch-empty { background: #fafaf8; border-radius: 12px; padding: 2.5rem; text-align: center; color: #aaa; font-size: 14px; }
+
+    .ch-item { background: #fff; border: 0.5px solid #e0e0dc; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 10px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; transition: border-color 0.15s; }
+    .ch-item:hover { border-color: #ccc; }
+    .ch-item-titulo { font-weight: 500; font-size: 14px; margin: 0 0 4px; }
+    .ch-item-desc { font-size: 13px; color: #888; margin: 0; }
+    .ch-item-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    .ch-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+    .ch-badge-aberto    { background: #EAF3DE; color: #3B6D11; }
+    .ch-badge-progresso { background: #FAEEDA; color: #854F0B; }
+    .ch-badge-fechado   { background: #f0f0ee; color: #777; }
+
+    .ch-btn-delete { background: none; border: 0.5px solid #e0e0dc; border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #999; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .ch-btn-delete:hover { border-color: #E24B4A; color: #A32D2D; background: #FCEBEB; }
+</style>
+
+<div class="ch-root">
+    <div class="ch-header">
+        <h1 class="ch-title">Chamados</h1>
+        <span class="ch-count-pill">@chamados.Count abertos</span>
+    </div>
+
+    <div class="ch-form-card">
+        <p class="ch-form-section-label">Novo chamado</p>
+        <EditForm Model="novo" OnValidSubmit="Criar">
+            <div class="ch-field">
+                <label for="titulo">Título</label>
+                <InputText id="titulo" @bind-Value="novo.Titulo" placeholder="Ex: Erro ao fazer login" />
+            </div>
+            <div class="ch-field">
+                <label for="descricao">Descrição</label>
+                <InputTextArea id="descricao" @bind-Value="novo.Descricao" rows="3" placeholder="Descreva o problema com detalhes..." />
+            </div>
+            <div style="display:flex; align-items:center;">
+                <button type="submit" class="ch-btn-primary" disabled="@carregando">
+                    @if (carregando)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                        <span>Processando...</span>
+                    }
+                    else
+                    {
+                        <span>+ Abrir chamado</span>
+                    }
+                </button>
+                @if (!string.IsNullOrEmpty(mensagem))
+                {
+                    <span class="ch-success-msg">✓ @mensagem</span>
+                }
+            </div>
+        </EditForm>
+    </div>
+
+    <h2 class="ch-list-title">Lista de chamados</h2>
+
+    @if (carregandoLista)
+    {
+        <div style="text-align:center; padding: 2rem;">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+        </div>
+    }
+    else if (!chamados.Any())
+    {
+        <div class="ch-empty">Nenhum chamado ainda. Crie um acima para começar.</div>
+    }
+    else
+    {
+        @foreach (var c in chamados)
+        {
+            <div class="ch-item">
+                <div>
+                    <p class="ch-item-titulo">@c.Titulo</p>
+                    <p class="ch-item-desc">
+                        @if (!string.IsNullOrEmpty(c.Descricao))
+                        {
+                            @(c.Descricao.Length > 80 ? c.Descricao[..80] + "..." : c.Descricao)
+                        }
+                        else
+                        {
+                            <em>Sem descrição</em>
+                        }
+                    </p>
+                </div>
+                <div class="ch-item-actions">
+                    <span class="ch-badge @GetStatusBadgeClass(c.Status.ToString())">@c.Status</span>
+                    <button class="ch-btn-delete" @onclick="() => Deletar(c.Id)">Deletar</button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    List<Chamado> chamados = new();
+    Chamado novo = new();
+    bool carregando = false;
+    bool carregandoLista = true;
+    string mensagem = "";
+
+    protected override async Task OnInitializedAsync() => await CarregarChamados();
+
+    private async Task CarregarChamados()
+    {
+        try { carregandoLista = true; chamados = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados") ?? new(); }
+        catch { chamados = new(); }
+        finally { carregandoLista = false; }
+    }
+
+    async Task Criar()
+    {
+        if (string.IsNullOrWhiteSpace(novo.Titulo)) return;
+        try
+        {
+            carregando = true; mensagem = "";
+            await Http.PostAsJsonAsync("api/chamados", novo);
+            novo = new(); mensagem = "Chamado criado com sucesso!";
+            await CarregarChamados();
+        }
+        catch (Exception ex) { mensagem = $"Erro: {ex.Message}"; }
+        finally { carregando = false; }
+    }
+
+    async Task Deletar(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Deletar este chamado?")) return;
+        try { await Http.DeleteAsync($"api/chamados/{id}"); await CarregarChamados(); }
+        catch { }
+    }
+
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Aberto"       => "ch-badge-aberto",
+        "Em Progresso" => "ch-badge-progresso",
+        "Fechado"      => "ch-badge-fechado",
+        _              => "ch-badge-aberto"
+    };
+}
