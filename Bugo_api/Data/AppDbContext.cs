@@ -10,5 +10,6 @@ namespace Bugo_api.Data
         }
 
         public DbSet<Chamado> Chamados { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
     }
 }

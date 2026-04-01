@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <Content Remove="Pages\Chamados.razor" />
+    <Content Remove="Pages\Component.razor" />
+    <Content Remove="Pages\Component1.razor" />
+    <Content Remove="Pages\TelaChamadsos.razor" />
   </ItemGroup>
 
   <ItemGroup>
