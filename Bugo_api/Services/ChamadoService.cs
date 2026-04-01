@@ -26,13 +26,13 @@ namespace Bugo_api.Services
             return chamado;
         }
 
-        public Chamado? AssumirChamado(int id, string Tecnico)
+        public Chamado? AssumirChamado(int id, int tecnicoId)
         {
             var chamado = _context.Chamados.FirstOrDefault(x => x.Id == id);
 
             if (chamado == null) return null;
 
-            chamado.Tecnico = Tecnico;
+            chamado.tecnicoId = tecnicoId;
             chamado.Status = StatusChamado.EmAndamento;
 
             _context.SaveChanges();
@@ -63,6 +63,33 @@ namespace Bugo_api.Services
             _context.SaveChanges();
 
             return chamado;
+        }
+
+        public void Update(Chamado chamado)
+        {
+            _context.Chamados.Update(chamado);
+            _context.SaveChanges();
+        }
+
+        public List<Chamado> GetAberto()
+        {
+            return _context.Chamados
+                .Where(x => x.Status == StatusChamado.Aberto)
+                .ToList();
+        }
+
+        public List<Chamado> GetPorTecnico(int tecnicoId)
+        {
+            return _context.Chamados
+                .Where(x => x.tecnicoId == tecnicoId)
+                .ToList();
+        }
+
+        public List<Chamado> GetPorUsuario(string usuario)
+        {
+            return _context.Chamados
+                .Where(x => x.Usuario == usuario)
+                .ToList();
         }
     }
 }

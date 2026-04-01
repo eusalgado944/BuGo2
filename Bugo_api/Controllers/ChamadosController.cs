@@ -39,21 +39,38 @@ namespace Bugo_api.Controllers
             return Ok(chamado);
         }
 
+        [HttpGet("Abertos")]
+        public IActionResult GetAbertos()
+        {
+            return Ok(_service.GetAberto());
+        }
+
+        [HttpGet("tecnico/{id}")]
+        public IActionResult GetPorTecnico(int id)
+        {
+            return Ok(_service.GetPorTecnico(id));
+        }
+
         [HttpPut("{id}/status")]
         public IActionResult UpdateStatus(int id, [FromBody] StatusChamado status)
         {
+            if (status == null)
+                return BadRequest("Status inválido");
+
             var chamado = _service.GetAll().FirstOrDefault(x => x.Id == id);
             if (chamado == null)
                 return NotFound();
+
             chamado.Status = status;
-         
+            _service.Update(chamado);
+
             return Ok(chamado);
         }
 
         [HttpPut("{id}/assumir")]
-        public IActionResult Assumir(int id, [FromBody] string Tecnico)
+        public IActionResult Assumir(int id, [FromBody] int tecnicoId)
         {
-            var chamado = _service.AssumirChamado(id, Tecnico);
+            var chamado = _service.AssumirChamado(id, tecnicoId);
 
             if (chamado == null)
                 return NotFound();
