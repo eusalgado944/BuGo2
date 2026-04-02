@@ -17,22 +17,23 @@ namespace Bugo_api.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_service.GetAll());
+            var chamados = await _service.GetAll();
+            return Ok(chamados);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Chamado chamado)
+        public async Task<IActionResult> Post([FromBody] Chamado chamado)
         {
-            var novo = _service.Create(chamado);
-            return Ok(novo);
+            var novo = await _service.Create(chamado);
+            return CreatedAtAction(nameof(GetById), new { id = novo.Id }, novo);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var chamado = _service.GetAll().FirstOrDefault(x => x.Id == id);
+            var chamado = await _service.GetById(id);
             if (chamado == null)
                 return NotFound();
 
@@ -40,37 +41,36 @@ namespace Bugo_api.Controllers
         }
 
         [HttpGet("Abertos")]
-        public IActionResult GetAbertos()
+        public async Task<IActionResult> GetAbertos()
         {
-            return Ok(_service.GetAberto());
+            var chamados = await _service.GetAberto();
+            return Ok(chamados);
         }
 
         [HttpGet("tecnico/{id}")]
-        public IActionResult GetPorTecnico(int id)
+        public async Task<IActionResult> GetPorTecnico(int id)
         {
-            return Ok(_service.GetPorTecnico(id));
+            var chamados = await _service.GetPorTecnico(id);
+            return Ok(chamados);
         }
 
         [HttpPut("{id}/status")]
-        public IActionResult UpdateStatus(int id, [FromBody] StatusChamado status)
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusChamado status)
         {
-            if (status == null)
-                return BadRequest("Status inválido");
-
-            var chamado = _service.GetAll().FirstOrDefault(x => x.Id == id);
+            var chamado = await _service.GetById(id);
             if (chamado == null)
                 return NotFound();
 
             chamado.Status = status;
-            _service.Update(chamado);
+            await _service.Update(chamado);
 
             return Ok(chamado);
         }
 
         [HttpPut("{id}/assumir")]
-        public IActionResult Assumir(int id, [FromBody] int tecnicoId)
+        public async Task<IActionResult> Assumir(int id, [FromBody] int tecnicoId)
         {
-            var chamado = _service.AssumirChamado(id, tecnicoId);
+            var chamado = await _service.AssumirChamado(id, tecnicoId);
 
             if (chamado == null)
                 return NotFound();
@@ -79,13 +79,24 @@ namespace Bugo_api.Controllers
         }
 
         [HttpPut("{id}/finalizar")]
-        public IActionResult Finalizar(int id)
+        public async Task<IActionResult> Finalizar(int id)
         {
-            var chamado = _service.FinalizarChamado(id);
-            
+            var chamado = await _service.FinalizarChamado(id);
+
             if (chamado == null)
                 return NotFound();
-            
+
+            return Ok(chamado);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var chamado = await _service.Delete(id);
+
+            if (chamado == null)
+                return NotFound();
+
             return Ok(chamado);
         }
     }

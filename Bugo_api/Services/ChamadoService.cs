@@ -1,6 +1,8 @@
 ﻿using Bugo_shared.Models;
 using Bugo_shared.Enum;
 using Bugo_api.Data;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Bugo_api.Services
 {
@@ -13,83 +15,79 @@ namespace Bugo_api.Services
             _context = context;
         }
 
-        public List<Chamado> GetAll() => _context.Chamados.ToList();
+        public async Task<List<Chamado>> GetAll() => await _context.Chamados.ToListAsync();
 
-        public Chamado Create(Chamado chamado)
+        public async Task<Chamado?> GetById(int id) => await _context.Chamados.FirstOrDefaultAsync(x => x.Id == id);
+
+        public async Task<Chamado> Create(Chamado chamado)
         {
             chamado.DataAbertura = DateTime.UtcNow;
             chamado.Status = StatusChamado.Aberto;
 
-            _context.Chamados.Add(chamado);
-            _context.SaveChanges();
+            await _context.Chamados.AddAsync(chamado);
+            await _context.SaveChangesAsync();
 
             return chamado;
         }
 
-        public Chamado? AssumirChamado(int id, int tecnicoId)
+        public async Task<Chamado?> AssumirChamado(int id, int tecnicoId)
         {
-            var chamado = _context.Chamados.FirstOrDefault(x => x.Id == id);
+            var chamado = await GetById(id);
 
             if (chamado == null) return null;
 
-            chamado.tecnicoId = tecnicoId;
+            chamado.TecnicoId = tecnicoId;
             chamado.Status = StatusChamado.EmAndamento;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return chamado;
         }
 
-        public Chamado? FinalizarChamado(int id)
+        public async Task<Chamado?> FinalizarChamado(int id)
         {
-            var chamado = _context.Chamados.FirstOrDefault(x => x.Id == id);
+            var chamado = await GetById(id);
 
             if (chamado == null) return null;
 
             chamado.Status = StatusChamado.Finalizado;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return chamado;
         }
 
-        public Chamado? Delete(int id)
+        public async Task<Chamado?> Delete(int id)
         {
-            var chamado = _context.Chamados.FirstOrDefault(x => x.Id == id);
+            var chamado = await GetById(id);
 
             if (chamado == null) return null;
 
             _context.Chamados.Remove(chamado);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return chamado;
         }
 
-        public void Update(Chamado chamado)
+        public async Task Update(Chamado chamado)
         {
             _context.Chamados.Update(chamado);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public List<Chamado> GetAberto()
-        {
-            return _context.Chamados
+        public async Task<List<Chamado>> GetAberto() =>
+            await _context.Chamados
                 .Where(x => x.Status == StatusChamado.Aberto)
-                .ToList();
-        }
+                .ToListAsync();
 
-        public List<Chamado> GetPorTecnico(int tecnicoId)
-        {
-            return _context.Chamados
-                .Where(x => x.tecnicoId == tecnicoId)
-                .ToList();
-        }
+        public async Task<List<Chamado>> GetPorTecnico(int tecnicoId) =>
+            await _context.Chamados
+                .Where(x => x.TecnicoId == tecnicoId)
+                .ToListAsync();
 
-        public List<Chamado> GetPorUsuario(string usuario)
-        {
-            return _context.Chamados
+        public async Task<List<Chamado>> GetPorUsuario(string usuario) =>
+            await _context.Chamados
                 .Where(x => x.Usuario == usuario)
-                .ToList();
-        }
+                .ToListAsync();
     }
 }
