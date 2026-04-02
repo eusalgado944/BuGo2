@@ -1,21 +1,15 @@
 using Bugo_blazor;
-using Bugo_blazor.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.Extensions.Http;
-using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-
-builder.Services.AddHttpClient("API", client =>
+builder.Services.AddScoped(sp => new HttpClient
 {
-    client.BaseAddress = new Uri("https://localhost:7280");
+    BaseAddress = new Uri("https://localhost:7280")
 });
 
-builder.Services.AddScoped<AuthService>(sp => 
-    new AuthService(sp.GetRequiredService<IHttpClientFactory>().CreateClient("API"), sp.GetRequiredService<IJSRuntime>()));
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 await builder.Build().RunAsync();
