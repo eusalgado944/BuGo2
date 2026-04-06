@@ -25,7 +25,7 @@ namespace Bugo_api.Services
                 senha
             });
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
                 return false;
 
             UsuarioLogado = await response.Content.ReadFromJsonAsync<Usuario>();

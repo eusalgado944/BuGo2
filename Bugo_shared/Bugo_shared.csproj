@@ -115,6 +115,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="DTOs\LoginReponse.cs" />
+    <Compile Include="DTOs\LoginRequest.cs" />
     <Compile Include="Enum\PerfilEnum.cs" />
     <Compile Include="Enum\StatusChamado.cs" />
     <Compile Include="Models\Chamado.cs" />
