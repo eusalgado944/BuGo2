@@ -90,5 +90,27 @@ namespace Bugo_api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Erro ao buscar usuário", error = ex.Message });
             }
         }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, Usuario usuario)
+        {
+            var update = _service.Update(id, usuario);
+
+            if (update != null)
+                return NotFound(new { mensage = "Usuário não encontrado" });
+
+            return Ok(update);
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var delete = _service.Delete(id);
+
+            if (delete != null)
+                return NotFound(new { mensage = "Usuário não encontrado" });
+
+            return Ok(delete);
+        }
     }
 }
