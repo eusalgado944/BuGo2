@@ -107,10 +107,10 @@ namespace Bugo_api.Controllers
         {
             var delete = _service.Delete(id);
 
-            if (delete != null)
+            if (delete == false)
                 return NotFound(new { mensage = "Usuário não encontrado" });
 
-            return Ok(delete);
+            return NoContent();
         }
     }
 }

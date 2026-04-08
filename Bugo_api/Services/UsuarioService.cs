@@ -54,16 +54,16 @@ public class UsuarioService
         return user;
     }
 
-    public Usuario? Delete(int id)
+    public bool? Delete(int id)
     {
         var user = _context.Usuarios.FirstOrDefault(x => x.Id == id);
         
         if (user == null)
-            return null;
+            return false;
         
         _context.Usuarios.Remove(user);
         _context.SaveChanges();
      
-        return user;
+        return true;
     }
 }
