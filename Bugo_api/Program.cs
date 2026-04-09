@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddHttpClient<AuthService>();
+builder.Services.AddHttpClient<AuthService_old>();
 
 var app = builder.Build();
 
