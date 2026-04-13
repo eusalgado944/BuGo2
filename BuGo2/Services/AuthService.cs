@@ -3,9 +3,9 @@ using System.Net.Http.Json;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
-namespace Bugo_api.Services
+namespace Bugo_blazor.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
         private readonly IJSRuntime _js;
@@ -14,6 +14,8 @@ namespace Bugo_api.Services
         public string? Token { get; private set; }
 
         public bool IsAuthenticated => UsuarioLogado != null;
+
+        public string CurrentUserEmail => throw new NotImplementedException();
 
         public AuthService(HttpClient http, IJSRuntime js)
         {
@@ -90,6 +92,11 @@ namespace Bugo_api.Services
 
             await _js.InvokeVoidAsync("localStorage.removeItem", "usuario");
             await _js.InvokeVoidAsync("localStorage.removeItem", "token");
+        }
+
+        public void signOut()
+        {
+            throw new NotImplementedException();
         }
     }
 

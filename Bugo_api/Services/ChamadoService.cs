@@ -1,9 +1,9 @@
 ﻿using Bugo_shared.Models;
 using Bugo_shared.Enum;
-using Bugo_api.Data;
+using Bugo_blazor.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Bugo_api.Services
+namespace Bugo_blazor.Services
 {
     public class ChamadoService
     {

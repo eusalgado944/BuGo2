@@ -1,7 +1,7 @@
 ﻿using Bugo_shared.Models;
 using System.Net.Http.Json;
 
-namespace Bugo_api.Services
+namespace Bugo_blazor.Services
 {
     public class ChamadoService
     {

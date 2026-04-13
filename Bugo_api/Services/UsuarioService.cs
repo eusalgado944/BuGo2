@@ -1,8 +1,8 @@
-﻿using Bugo_api.Data;
+﻿using Bugo_blazor.Data;
 using Bugo_shared.DTOs;
 using Bugo_shared.Models;
 
-namespace Bugo_api.Services;
+namespace Bugo_blazor.Services;
 
 public class UsuarioService
 {

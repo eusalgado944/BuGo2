@@ -1,7 +1,7 @@
 ﻿using Bugo_shared.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Bugo_api.Data
+namespace Bugo_blazor.Data
 {
     public class AppDbContext : DbContext
     {

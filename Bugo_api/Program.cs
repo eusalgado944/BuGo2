@@ -1,5 +1,5 @@
-using Bugo_api.Data;
-using Bugo_api.Services;
+using Bugo_blazor.Data;
+using Bugo_blazor.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
-namespace Bugo_api.Services
+namespace Bugo_blazor.Services
 {
     public class AuthService_old
     {

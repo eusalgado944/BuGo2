@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Bugo_api.Migrations
+namespace Bugo_blazor.Migrations
 {
     /// <inheritdoc />
     public partial class FixChamadoTecnicoIdColumn : Migration

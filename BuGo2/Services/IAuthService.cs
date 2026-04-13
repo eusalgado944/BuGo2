@@ -1,4 +1,4 @@
-﻿namespace Bugo_api.Services
+﻿namespace Bugo_blazor.Services
 {
     public interface IAuthService
     {

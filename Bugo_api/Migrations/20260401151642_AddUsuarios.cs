@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Bugo_api.Migrations
+namespace Bugo_blazor.Migrations
 {
     /// <inheritdoc />
     public partial class AddUsuarios : Migration

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Bugo_shared.Models;
 using Bugo_shared.Enum;
-using Bugo_api.Services;
+using Bugo_blazor.Services;
 
-namespace Bugo_api.Controllers
+namespace Bugo_blazor.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

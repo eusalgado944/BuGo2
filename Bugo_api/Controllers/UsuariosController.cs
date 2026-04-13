@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Bugo_shared.Models;
 
-namespace Bugo_api.Controllers
+namespace Bugo_blazor.Controllers
 {
 
     [ApiController]
