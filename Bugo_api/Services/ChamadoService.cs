@@ -2,7 +2,6 @@
 using Bugo_shared.Enum;
 using Bugo_api.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace Bugo_api.Services
 {
