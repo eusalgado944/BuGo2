@@ -22,11 +22,6 @@ namespace Bugo_blazor.Controllers
             _config = config;
         }
 
-        public UsuariosController(Services.UsuarioService service)
-        {
-            _service = service;
-        }
-
         [HttpGet]
         public IActionResult Get()
         {

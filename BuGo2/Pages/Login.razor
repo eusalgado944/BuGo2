@@ -169,7 +169,7 @@
             var result = await AuthService.Login(_email, _password);
 
             if (result.Success)
-                Navigation.NavigateTo("/");
+                Navigation.NavigateTo("/home");
 
             else
                 _errorMessage = "E-mail ou senha incorretos.";

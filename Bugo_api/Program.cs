@@ -20,11 +20,12 @@ builder.Services.AddSwaggerGen();
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("BlazorPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy
+            .WithOrigins("http://localhost:5252", "https://localhost:5252")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -45,7 +46,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
-app.UseCors("AllowAll");
+app.UseCors("BlazorPolicy");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
