@@ -14,7 +14,7 @@ namespace Bugo_blazor.Services
 
         public async Task<Usuario> GetById(int id)
         {
-            return await _http.GetFromJsonAsync<Usuario>($"api/usuarios/{id}");
+            return await _http.GetFromJsonAsync<Usuario>($"api/login/{id}");
         }
 
         public async Task Update(Usuario user)
