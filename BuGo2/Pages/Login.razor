@@ -7,85 +7,31 @@
 <PageTitle>Login — Bu&amp;Go!</PageTitle>
 
 <style>
-    .login-wrap {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem 1rem;
-        position: relative;
-        transition: background 0.3s;
-    }
-    .login-wrap.dark { --bg:#0f1b2d;--card:#1a2c45;--border:#2a4060;--accent:#2e7fd8;--accent-hover:#3a8fec;--text:#e8f1fb;--text-muted:#7a9bbf;--input-bg:#0f1b2d;--err-bg:rgba(224,82,82,0.12);--err-border:rgba(224,82,82,0.3);--err-text:#e05252; background:#0f1b2d; }
-    .login-wrap.light { --bg:#f0f6ff;--card:#ffffff;--border:#c2d9f5;--accent:#1a6ec7;--accent-hover:#1560b0;--text:#0d2040;--text-muted:#5580aa;--input-bg:#f7faff;--err-bg:rgba(192,57,43,0.08);--err-border:rgba(192,57,43,0.25);--err-text:#c0392b; background:#f0f6ff; }
-
-    .theme-btn {
-        position: absolute; top: 16px; right: 16px;
-        background: var(--card); border: 1px solid var(--border);
-        border-radius: 8px; color: var(--text-muted);
-        font-size: 13px; padding: 7px 14px; cursor: pointer;
-        font-family: inherit; transition: all 0.2s;
-    }
-    .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .login-card {
-        background: var(--card); border: 1px solid var(--border);
-        border-radius: 16px; padding: 2.5rem 2rem;
-        width: 100%; max-width: 400px;
-    }
-
-    .logo-area { text-align: center; margin-bottom: 2rem; }
-
-    .logo-icon {
-        width: 56px; height: 56px; background: var(--accent);
-        border-radius: 14px; display: flex; align-items: center;
-        justify-content: center; margin: 0 auto 12px;
-    }
-
-    .app-name { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-    .app-name span { color: var(--accent); }
-    .app-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-
-    .error-box {
-        background: var(--err-bg); border: 1px solid var(--err-border);
-        border-radius: 8px; padding: 10px 14px;
-        font-size: 13px; color: var(--err-text); margin-bottom: 1rem;
-    }
-
-    .field { margin-bottom: 1rem; }
-
-    .field label {
-        display: block; font-size: 11px; font-weight: 600;
-        color: var(--text-muted); margin-bottom: 6px;
-        letter-spacing: 0.5px; text-transform: uppercase;
-    }
-
-    .field input {
-        width: 100%; background: var(--input-bg);
-        border: 1px solid var(--border); border-radius: 8px;
-        padding: 11px 13px; font-size: 14px; color: var(--text);
-        outline: none; transition: border-color 0.2s;
-        box-sizing: border-box; font-family: inherit;
-    }
-    .field input:focus { border-color: var(--accent); }
-    .field input::placeholder { color: var(--text-muted); opacity: 0.55; }
-
-    .forgot { text-align: right; margin-top: 6px; }
-    .forgot a { font-size: 12px; color: var(--accent); text-decoration: none; }
-
-    .btn-login {
-        width: 100%; background: var(--accent); color: white;
-        border: none; border-radius: 8px; padding: 12px;
-        font-size: 15px; font-weight: 600; cursor: pointer;
-        margin-top: 1.25rem; font-family: inherit;
-        transition: background 0.2s, transform 0.1s, opacity 0.2s;
-    }
-    .btn-login:hover:not(:disabled) { background: var(--accent-hover); }
-    .btn-login:active:not(:disabled) { transform: scale(0.98); }
-    .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
-
-    .login-footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 1.75rem; }
-    .login-footer a { color: var(--accent); text-decoration: none; }
+    .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; position:relative; transition:background 0.3s; }
+    .login-wrap.dark { --card:#1a2c45;--border:#2a4060;--accent:#2e7fd8;--accent-hover:#3a8fec;--text:#e8f1fb;--text-muted:#7a9bbf;--input-bg:#0f1b2d;--err-bg:rgba(224,82,82,0.12);--err-border:rgba(224,82,82,0.3);--err-text:#e05252; background:#0f1b2d; }
+    .login-wrap.light { --card:#ffffff;--border:#c2d9f5;--accent:#1a6ec7;--accent-hover:#1560b0;--text:#0d2040;--text-muted:#5580aa;--input-bg:#f7faff;--err-bg:rgba(192,57,43,0.08);--err-border:rgba(192,57,43,0.25);--err-text:#c0392b; background:#f0f6ff; }
+    .theme-btn { position:absolute; top:16px; right:16px; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-size:13px; padding:7px 14px; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+    .theme-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .login-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2.5rem 2rem; width:100%; max-width:400px; }
+    .logo-area { text-align:center; margin-bottom:2rem; }
+    .logo-icon { width:56px; height:56px; background:var(--accent); border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; }
+    .app-name { font-size:24px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+    .app-name span { color:var(--accent); }
+    .app-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; }
+    .error-box { background:var(--err-bg); border:1px solid var(--err-border); border-radius:8px; padding:10px 14px; font-size:13px; color:var(--err-text); margin-bottom:1rem; }
+    .field { margin-bottom:1rem; }
+    .field label { display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; letter-spacing:0.5px; text-transform:uppercase; }
+    .field input { width:100%; background:var(--input-bg); border:1px solid var(--border); border-radius:8px; padding:11px 13px; font-size:14px; color:var(--text); outline:none; transition:border-color 0.2s; box-sizing:border-box; font-family:inherit; }
+    .field input:focus { border-color:var(--accent); }
+    .field input::placeholder { color:var(--text-muted); opacity:0.55; }
+    .forgot { text-align:right; margin-top:6px; }
+    .forgot a { font-size:12px; color:var(--accent); text-decoration:none; }
+    .btn-login { width:100%; background:var(--accent); color:white; border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:600; cursor:pointer; margin-top:1.25rem; font-family:inherit; transition:background 0.2s, transform 0.1s, opacity 0.2s; }
+    .btn-login:hover:not(:disabled) { background:var(--accent-hover); }
+    .btn-login:active:not(:disabled) { transform:scale(0.98); }
+    .btn-login:disabled { opacity:0.65; cursor:not-allowed; }
+    .login-footer { text-align:center; font-size:12px; color:var(--text-muted); margin-top:1.75rem; }
+    .login-footer a { color:var(--accent); text-decoration:none; }
 </style>
 
 <div class="login-wrap @(_darkMode ? "dark" : "light")">
@@ -98,7 +44,7 @@
         <div class="logo-area">
             <div class="logo-icon">
                 <svg viewBox="0 0 24 24" fill="white" width="28" height="28">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                 </svg>
             </div>
             <div class="app-name">Bu<span>&amp;</span>Go!</div>
@@ -169,14 +115,9 @@
             var result = await AuthService.Login(_email, _password);
 
             if (result.Success)
-                Navigation.NavigateTo("/home");
-
+                Navigation.NavigateTo("/");
             else
-                _errorMessage = "E-mail ou senha incorretos.";
-        }
-        catch
-        {
-            _errorMessage = "Erro ao conectar com o servidor. Tente novamente.";
+                _errorMessage = result.Error ?? "E-mail ou senha incorretos.";
         }
         finally
         {

@@ -2,6 +2,7 @@ using Bugo_shared.Models;
 using System.Net.Http.Json;
 using Microsoft.JSInterop;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Bugo_blazor.Services
 {
@@ -14,8 +15,6 @@ namespace Bugo_blazor.Services
         public string? Token { get; private set; }
 
         public bool IsAuthenticated => UsuarioLogado != null;
-
-        public string CurrentUserEmail => throw new NotImplementedException();
 
         public AuthService(HttpClient http, IJSRuntime js)
         {
@@ -41,21 +40,23 @@ namespace Bugo_blazor.Services
 
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-                if (result == null || result.Usuario == null)
+                if (result == null)
                     return AuthResult.Fail("Resposta inválida da API");
 
-                UsuarioLogado = result.Usuario;
+                UsuarioLogado = new Usuario
+                {
+                    Id = result.Id,
+                    Email = result.Email ?? "",
+                    Nome = result.Nome ?? ""
+                };
+
                 Token = result.Token;
 
-                // salva usuario
                 await _js.InvokeVoidAsync("localStorage.setItem", "usuario",
                     JsonSerializer.Serialize(UsuarioLogado));
 
-                // salva token
                 if (!string.IsNullOrEmpty(Token))
-                {
                     await _js.InvokeVoidAsync("localStorage.setItem", "token", Token);
-                }
 
                 return AuthResult.Ok(Token);
             }
@@ -75,14 +76,10 @@ namespace Bugo_blazor.Services
             var token = await _js.InvokeAsync<string>("localStorage.getItem", "token");
 
             if (!string.IsNullOrEmpty(json))
-            {
                 UsuarioLogado = JsonSerializer.Deserialize<Usuario>(json);
-            }
 
             if (!string.IsNullOrEmpty(token))
-            {
                 Token = token;
-            }
         }
 
         public async Task Logout()
@@ -93,16 +90,8 @@ namespace Bugo_blazor.Services
             await _js.InvokeVoidAsync("localStorage.removeItem", "usuario");
             await _js.InvokeVoidAsync("localStorage.removeItem", "token");
         }
-
-        public void signOut()
-        {
-            throw new NotImplementedException();
-        }
     }
 
-    // ============================
-    // Resultado padrão de autenticação
-    // ============================
     public class AuthResult
     {
         public bool Success { get; set; }
@@ -116,12 +105,18 @@ namespace Bugo_blazor.Services
             => new() { Success = false, Error = error };
     }
 
-    // ============================
-    // Modelo esperado da API
-    // ============================
     public class LoginResponse
     {
-        public Usuario? Usuario { get; set; }
+        [JsonPropertyName("token")]
         public string? Token { get; set; }
+
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("nome")]
+        public string? Nome { get; set; }
     }
 }
