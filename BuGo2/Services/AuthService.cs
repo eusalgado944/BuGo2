@@ -1,3 +1,4 @@
+using Bugo_shared.Enum;
 using Bugo_shared.Models;
 using System.Net.Http.Json;
 using Microsoft.JSInterop;
@@ -13,7 +14,7 @@ namespace Bugo_blazor.Services
 
         public Usuario? UsuarioLogado { get; private set; }
         public string? Token { get; private set; }
-
+        public PerfilEnum? Perfil => UsuarioLogado?.Perfil;
         public bool IsAuthenticated => UsuarioLogado != null;
 
         public AuthService(HttpClient http, IJSRuntime js)
@@ -47,7 +48,8 @@ namespace Bugo_blazor.Services
                 {
                     Id = result.Id,
                     Email = result.Email ?? "",
-                    Nome = result.Nome ?? ""
+                    Nome = result.Nome ?? "",
+                    Perfil = result.Perfil
                 };
 
                 Token = result.Token;
@@ -118,5 +120,8 @@ namespace Bugo_blazor.Services
 
         [JsonPropertyName("nome")]
         public string? Nome { get; set; }
+
+        [JsonPropertyName("perfil")]
+        public PerfilEnum Perfil { get; set; }
     }
 }

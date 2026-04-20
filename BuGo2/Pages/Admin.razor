@@ -1,0 +1,6 @@
+﻿@page "/admin/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@layout MainLayout
+
+<h3>Painel Admin</h3>

@@ -1,0 +1,6 @@
+﻿@page "/usuario/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Usuario")]
+@layout MainLayout
+
+<h3>Meus Chamados</h3>

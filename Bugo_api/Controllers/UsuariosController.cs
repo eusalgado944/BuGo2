@@ -67,7 +67,7 @@ namespace Bugo_blazor.Controllers
 
                 var token = GerarToken(usuario);
 
-                return Ok(new { token, usuario.Id, usuario.Email, usuario.Nome });
+                return Ok(new { token, usuario.Id, usuario.Email, usuario.Nome, usuario.Perfil });
             }
             catch (Exception ex)
             {

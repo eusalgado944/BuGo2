@@ -1,8 +1,11 @@
-﻿@page "/login"
+﻿@using Bugo_shared.Enum
+@page "/login"
 @layout EmptyLayout
+@inject AuthStateProvider AuthState
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@attribute [AllowAnonymous]
 
 <PageTitle>Login — Bu&amp;Go!</PageTitle>
 
@@ -79,6 +82,8 @@
     </div>
 </div>
 
+@using Bugo_shared.Enum
+
 @code {
     private string _email = "";
     private string _password = "";
@@ -115,13 +120,28 @@
             var result = await AuthService.Login(_email, _password);
 
             if (result.Success)
-                Navigation.NavigateTo("/");
+            {
+                AuthState.NotificarLogin();
+
+                var destino = AuthService.Perfil switch
+                {
+                    PerfilEnum.Admin   => "/admin/dashboard",
+                    PerfilEnum.Tecnico => "/tecnico/dashboard",
+                    PerfilEnum.Usuario => "/usuario/dashboard",
+                    _                  => "/"
+                };
+
+                Navigation.NavigateTo(destino);
+            }
             else
+            {
                 _errorMessage = result.Error ?? "E-mail ou senha incorretos.";
+            }
         }
         finally
         {
             _isLoading = false;
         }
     }
+}
 }

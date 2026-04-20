@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
 using Bugo_blazor;
 using Bugo_blazor.Services;
 
@@ -9,10 +10,15 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5121")
+    BaseAddress = new Uri("http://localhost:5121/")
 });
 
-// ← ESSA LINHA é obrigatória
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// ← registra das duas formas para funcionar tanto no Login.razor quanto no App.razor
+builder.Services.AddScoped<AuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthStateProvider>());
+
+builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();

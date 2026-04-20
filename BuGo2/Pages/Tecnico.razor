@@ -1,0 +1,237 @@
+﻿@page "/tecnico/dashboard"
+@attribute [Authorize(Roles = "Tecnico")]
+@layout MainLayout
+@inject IAuthService AuthService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@using Bugo_shared.Models
+@using Bugo_shared.Enum
+@using Microsoft.AspNetCore.Authorization
+
+<PageTitle>Painel Técnico — Bu&amp;Go!</PageTitle>
+
+<style>
+    .page-wrap { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 22px; font-weight: 700; color: #e8f1fb; }
+    .page-title span { color: #2e7fd8; }
+    .user-info { font-size: 13px; color: #7a9bbf; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+    .stat-card { background: #1a2c45; border: 1px solid #2a4060; border-radius: 12px; padding: 1rem 1.25rem; }
+    .stat-label { font-size: 12px; color: #7a9bbf; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #e8f1fb; }
+    .stat-value.aberto { color: #e0a020; }
+    .stat-value.andamento { color: #2e7fd8; }
+    .stat-value.finalizado { color: #2ecc71; }
+
+    .filters { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .filter-btn { background: #1a2c45; border: 1px solid #2a4060; border-radius: 8px; color: #7a9bbf; font-size: 13px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .filter-btn:hover, .filter-btn.active { background: #2e7fd8; border-color: #2e7fd8; color: white; }
+
+    .chamados-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .chamado-card { background: #1a2c45; border: 1px solid #2a4060; border-radius: 12px; padding: 1.25rem; transition: border-color 0.2s; }
+    .chamado-card:hover { border-color: #2e7fd8; }
+
+    .chamado-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 8px; flex-wrap: wrap; }
+    .chamado-titulo { font-size: 15px; font-weight: 600; color: #e8f1fb; }
+    .chamado-id { font-size: 12px; color: #7a9bbf; margin-top: 2px; }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+    .badge-aberto { background: rgba(224,160,32,0.15); color: #e0a020; border: 1px solid rgba(224,160,32,0.3); }
+    .badge-andamento { background: rgba(46,127,216,0.15); color: #2e7fd8; border: 1px solid rgba(46,127,216,0.3); }
+    .badge-finalizado { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+
+    .chamado-desc { font-size: 13px; color: #7a9bbf; margin-bottom: 12px; line-height: 1.5; }
+    .chamado-meta { font-size: 12px; color: #5a7a9a; margin-bottom: 12px; }
+
+    .chamado-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-action { background: #0f1b2d; border: 1px solid #2a4060; border-radius: 8px; color: #7a9bbf; font-size: 12px; padding: 6px 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-action:hover { border-color: #2e7fd8; color: #2e7fd8; }
+    .btn-action.andamento:hover { border-color: #2e7fd8; color: #2e7fd8; }
+    .btn-action.finalizar:hover { border-color: #2ecc71; color: #2ecc71; }
+
+    .empty { text-align: center; padding: 3rem; color: #7a9bbf; font-size: 14px; }
+
+    .loading { text-align: center; padding: 3rem; color: #7a9bbf; }
+
+    .btn-logout { background: transparent; border: 1px solid #2a4060; border-radius: 8px; color: #7a9bbf; font-size: 13px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-logout:hover { border-color: #e05252; color: #e05252; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1a2c45; border: 1px solid #2e7fd8; border-radius: 10px; padding: 12px 20px; color: #e8f1fb; font-size: 13px; z-index: 999; animation: fadein 0.3s ease; }
+    @@keyframes fadein { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+</style>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <div>
+            <div class="page-title">Bu<span>&</span>Go! <span style="font-weight:400;font-size:16px;">— Painel Técnico</span></div>
+            <div class="user-info">Olá, @AuthService.UsuarioLogado?.Nome</div>
+        </div>
+        <button class="btn-logout" @onclick="Logout">Sair</button>
+    </div>
+
+    @if (_carregando)
+    {
+        <div class="loading">Carregando chamados...</div>
+    }
+    else
+    {
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total</div>
+                <div class="stat-value">@_chamados.Count</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Abertos</div>
+                <div class="stat-value aberto">@_chamados.Count(c => c.Status == StatusChamado.Aberto)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Em andamento</div>
+                <div class="stat-value andamento">@_chamados.Count(c => c.Status == StatusChamado.EmAndamento)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Finalizados</div>
+                <div class="stat-value finalizado">@_chamados.Count(c => c.Status == StatusChamado.Finalizado)</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn @(_filtro == null ? "active" : "")" @onclick="() => SetFiltro(null)">Todos</button>
+            <button class="filter-btn @(_filtro == StatusChamado.Aberto ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.Aberto)">Abertos</button>
+            <button class="filter-btn @(_filtro == StatusChamado.EmAndamento ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.EmAndamento)">Em andamento</button>
+            <button class="filter-btn @(_filtro == StatusChamado.Finalizado ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.Finalizado)">Finalizados</button>
+        </div>
+
+        <div class="chamados-list">
+            @if (!ChamadosFiltrados.Any())
+            {
+                <div class="empty">Nenhum chamado encontrado.</div>
+            }
+            else
+            {
+                @foreach (var c in ChamadosFiltrados)
+                {
+                    <div class="chamado-card">
+                        <div class="chamado-header">
+                            <div>
+                                <div class="chamado-titulo">@c.Titulo</div>
+                                <div class="chamado-id">#@c.Id — Aberto por @c.Usuario</div>
+                            </div>
+                            <span class="badge @BadgeClass(c.Status)">@StatusLabel(c.Status)</span>
+                        </div>
+                        <div class="chamado-desc">@c.Descricao</div>
+                        <div class="chamado-meta">📅 @c.DataAbertura.ToString("dd/MM/yyyy HH:mm")</div>
+                        <div class="chamado-actions">
+                            @if (c.Status == StatusChamado.Aberto)
+                            {
+                                <button class="btn-action andamento" @onclick="() => AtualizarStatus(c, StatusChamado.EmAndamento)">
+                                    ▶ Iniciar atendimento
+                                </button>
+                            }
+                            @if (c.Status == StatusChamado.EmAndamento)
+                            {
+                                <button class="btn-action finalizar" @onclick="() => AtualizarStatus(c, StatusChamado.Finalizado)">
+                                    ✓ Finalizar
+                                </button>
+                            }
+                            @if (c.Status == StatusChamado.Finalizado)
+                            {
+                                <button class="btn-action" @onclick="() => AtualizarStatus(c, StatusChamado.Aberto)">
+                                    ↩ Reabrir
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@if (_toastVisivel)
+{
+    <div class="toast">@_toastMsg</div>
+}
+
+@code {
+    private List<Chamado> _chamados = new();
+    private StatusChamado? _filtro = null;
+    private bool _carregando = true;
+    private bool _toastVisivel = false;
+    private string _toastMsg = "";
+
+    private IEnumerable<Chamado> ChamadosFiltrados =>
+        _filtro == null ? _chamados : _chamados.Where(c => c.Status == _filtro);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarChamados();
+    }
+
+    private async Task CarregarChamados()
+    {
+        _carregando = true;
+        try
+        {
+            var id = AuthService.UsuarioLogado?.Id;
+            _chamados = await Http.GetFromJsonAsync<List<Chamado>>($"api/chamados/tecnico/{id}") ?? new();
+        }
+        catch
+        {
+            _chamados = new();
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private async Task AtualizarStatus(Chamado chamado, StatusChamado novoStatus)
+    {
+        var response = await Http.PutAsJsonAsync($"api/chamados/{chamado.Id}/status", novoStatus);
+        if (response.IsSuccessStatusCode)
+        {
+            chamado.Status = novoStatus;
+            MostrarToast($"Chamado #{chamado.Id} atualizado para {StatusLabel(novoStatus)}!");
+            StateHasChanged();
+        }
+    }
+
+    private void SetFiltro(StatusChamado? status) => _filtro = status;
+
+    private string BadgeClass(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "badge-aberto",
+        StatusChamado.EmAndamento => "badge-andamento",
+        StatusChamado.Finalizado => "badge-finalizado",
+        _ => ""
+    };
+
+    private string StatusLabel(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "Aberto",
+        StatusChamado.EmAndamento => "Em andamento",
+        StatusChamado.Finalizado => "Finalizado",
+        _ => ""
+    };
+
+    private async Task MostrarToast(string msg)
+    {
+        _toastMsg = msg;
+        _toastVisivel = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        _toastVisivel = false;
+        StateHasChanged();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}
