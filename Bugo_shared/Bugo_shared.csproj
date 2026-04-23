@@ -118,6 +118,7 @@
     <Compile Include="DTOs\LoginRequest.cs" />
     <Compile Include="DTOs\UsuarioUpdateDto.cs" />
     <Compile Include="Enum\PerfilEnum.cs" />
+    <Compile Include="Enum\PrioridadeEnum.cs" />
     <Compile Include="Enum\StatusChamado.cs" />
     <Compile Include="Models\Chamado.cs" />
     <Compile Include="Models\Usuario.cs" />
