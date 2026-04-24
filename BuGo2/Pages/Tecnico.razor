@@ -23,7 +23,6 @@
         --bg: #f4f5f7;
         --sidebar-bg: #0d1b2e;
         --sidebar-text: #8fa3bc;
-        --sidebar-active: #ffffff;
         --sidebar-accent: #1e6fd9;
         --card-bg: #ffffff;
         --border: #e4e8ef;
@@ -31,19 +30,15 @@
         --text-muted: #6b7a90;
         --accent: #1e6fd9;
         --accent-hover: #1558b0;
+        --topbar-bg: #ffffff;
         --badge-open-bg: #fff8e6; --badge-open: #c47d00;
         --badge-progress-bg: #e8f0fd; --badge-progress: #1e6fd9;
         --badge-done-bg: #e6faf2; --badge-done: #1a9e63;
-        --topbar-bg: #ffffff;
     }
 
     .dark-theme {
-        --bg: #0a1628;
-        --sidebar-bg: #060e1c;
-        --card-bg: #0f2040;
-        --border: #1a3050;
-        --text: #e2eaf5;
-        --text-muted: #5a7a9a;
+        --bg: #0a1628; --sidebar-bg: #060e1c; --card-bg: #0f2040;
+        --border: #1a3050; --text: #e2eaf5; --text-muted: #5a7a9a;
         --topbar-bg: #0d1b2e;
         --badge-open-bg: rgba(196,125,0,0.12); --badge-open: #f5a623;
         --badge-progress-bg: rgba(30,111,217,0.12); --badge-progress: #5b9ef5;
@@ -53,19 +48,19 @@
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
     .layout { display: flex; min-height: 100vh; }
 
-    .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: background 0.3s; }
+    .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
     .sidebar-logo { padding: 0 20px; height: var(--topbar-h); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .logo-icon-sm { width: 32px; height: 32px; background: var(--sidebar-accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .logo-name { font-size: 15px; font-weight: 600; color: #ffffff; letter-spacing: -0.2px; }
     .logo-name span { color: #5b9ef5; }
     .sidebar-nav { flex: 1; padding: 16px 10px; }
     .nav-section-label { font-size: 10px; font-weight: 600; color: rgba(143,163,188,0.5); letter-spacing: 0.8px; text-transform: uppercase; padding: 0 10px; margin: 16px 0 6px; }
-    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--sidebar-text); font-size: 13.5px; font-weight: 400; transition: all 0.15s; text-decoration: none; margin-bottom: 2px; border: none; background: transparent; width: 100%; font-family: 'DM Sans', sans-serif; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--sidebar-text); font-size: 13.5px; font-weight: 400; transition: all 0.15s; border: none; background: transparent; width: 100%; font-family: 'DM Sans', sans-serif; margin-bottom: 2px; }
     .nav-item:hover { background: rgba(255,255,255,0.06); color: #ffffff; }
     .nav-item.active { background: rgba(30,111,217,0.2); color: #ffffff; font-weight: 500; }
-    .nav-item.active .nav-icon { color: #5b9ef5; }
     .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
     .nav-badge { margin-left: auto; background: var(--sidebar-accent); color: white; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+    .nav-badge.alert { background: #e05252; }
     .sidebar-user { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
     .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--sidebar-accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; flex-shrink: 0; }
     .user-details { flex: 1; min-width: 0; }
@@ -76,14 +71,15 @@
     .topbar { height: var(--topbar-h); background: var(--topbar-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; position: sticky; top: 0; z-index: 50; transition: background 0.3s, border-color 0.3s; }
     .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
     .topbar-sub { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-left: 8px; }
-    .btn-theme { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 13px; padding: 6px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .btn-theme { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 13px; padding: 6px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
     .btn-theme:hover { border-color: var(--accent); color: var(--accent); }
     .btn-refresh { background: var(--accent); border: none; border-radius: 8px; color: white; font-size: 13px; padding: 7px 16px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: background 0.2s; }
     .btn-refresh:hover { background: var(--accent-hover); }
 
     .content { padding: 28px; flex: 1; }
+
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color 0.2s, background 0.3s; position: relative; overflow: hidden; cursor: pointer; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s; }
     .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 12px 12px 0 0; }
     .stat-card.total::before { background: #8b8fa3; }
     .stat-card.aberto::before { background: #c47d00; }
@@ -94,9 +90,12 @@
     .stat-value { font-size: 32px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; line-height: 1; }
     .stat-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 
-    .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
-    .table-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: background 0.3s, border-color 0.3s; margin-bottom: 24px; }
+    .table-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
     .table-title { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+    .table-subtitle { font-size: 12px; color: var(--text-muted); }
+
+    .fila-badge { background: #e05252; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; font-family: 'DM Mono', monospace; }
 
     table { width: 100%; border-collapse: collapse; }
     thead tr { border-bottom: 1px solid var(--border); }
@@ -123,8 +122,10 @@
     .btn-sm:hover { border-color: var(--accent); color: var(--accent); background: var(--badge-progress-bg); }
     .btn-sm.success:hover { border-color: #1a9e63; color: #1a9e63; background: var(--badge-done-bg); }
     .btn-sm.warn:hover { border-color: #c47d00; color: #c47d00; background: var(--badge-open-bg); }
+    .btn-sm.assumir { border-color: var(--accent); color: var(--accent); background: var(--badge-progress-bg); font-weight: 600; }
+    .btn-sm.assumir:hover { background: var(--accent); color: white; }
 
-    .empty-row td { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
+    .empty-row td { text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 14px; }
     .loading-row td { text-align: center; padding: 3rem; color: var(--text-muted); }
 
     .toast { position: fixed; bottom: 24px; right: 24px; background: var(--card-bg); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; color: var(--text); font-size: 13px; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.15); animation: slideup 0.3s ease; display: flex; align-items: center; gap: 8px; }
@@ -147,35 +148,35 @@
 
         <nav class="sidebar-nav">
             <div class="nav-section-label">Chamados</div>
-
-            <button class="nav-item @(_filtroAtivo == null ? "active" : "")" @onclick="() => SetFiltro(null)">
-                <span class="nav-icon">⊞</span>
-                Todos
-                <span class="nav-badge">@_chamados.Count</span>
+            <button class="nav-item @(_view == "meus" && _filtroAtivo == null ? "active" : "")" @onclick='() => SetView("meus", null)'>
+                <span class="nav-icon">⊞</span> Meus chamados
+                <span class="nav-badge">@_meusChamados.Count</span>
+            </button>
+            <button class="nav-item @(_view == "meus" && _filtroAtivo == StatusChamado.Aberto ? "active" : "")" @onclick='() => SetView("meus", StatusChamado.Aberto)'>
+                <span class="nav-icon">◉</span> Abertos
+                <span class="nav-badge">@_meusChamados.Count(c => c.Status == StatusChamado.Aberto)</span>
+            </button>
+            <button class="nav-item @(_view == "meus" && _filtroAtivo == StatusChamado.EmAndamento ? "active" : "")" @onclick='() => SetView("meus", StatusChamado.EmAndamento)'>
+                <span class="nav-icon">◷</span> Em andamento
+                <span class="nav-badge">@_meusChamados.Count(c => c.Status == StatusChamado.EmAndamento)</span>
+            </button>
+            <button class="nav-item @(_view == "meus" && _filtroAtivo == StatusChamado.Finalizado ? "active" : "")" @onclick='() => SetView("meus", StatusChamado.Finalizado)'>
+                <span class="nav-icon">✓</span> Finalizados
+                <span class="nav-badge">@_meusChamados.Count(c => c.Status == StatusChamado.Finalizado)</span>
             </button>
 
-            <button class="nav-item @(_filtroAtivo == StatusChamado.Aberto ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.Aberto)">
-                <span class="nav-icon">◉</span>
-                Abertos
-                <span class="nav-badge">@_chamados.Count(c => c.Status == StatusChamado.Aberto)</span>
-            </button>
-
-            <button class="nav-item @(_filtroAtivo == StatusChamado.EmAndamento ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.EmAndamento)">
-                <span class="nav-icon">◷</span>
-                Em andamento
-                <span class="nav-badge">@_chamados.Count(c => c.Status == StatusChamado.EmAndamento)</span>
-            </button>
-
-            <button class="nav-item @(_filtroAtivo == StatusChamado.Finalizado ? "active" : "")" @onclick="() => SetFiltro(StatusChamado.Finalizado)">
-                <span class="nav-icon">✓</span>
-                Finalizados
-                <span class="nav-badge">@_chamados.Count(c => c.Status == StatusChamado.Finalizado)</span>
+            <div class="nav-section-label">Fila</div>
+            <button class="nav-item @(_view == "fila" ? "active" : "")" @onclick='() => SetView("fila", null)'>
+                <span class="nav-icon">📥</span> Fila geral
+                @if (_filaChamados.Count > 0)
+                {
+                    <span class="nav-badge alert">@_filaChamados.Count</span>
+                }
             </button>
 
             <div class="nav-section-label">Conta</div>
             <button class="nav-item" @onclick="Logout">
-                <span class="nav-icon">→</span>
-                Sair
+                <span class="nav-icon">→</span> Sair
             </button>
         </nav>
 
@@ -191,109 +192,160 @@
     <div class="main">
         <div class="topbar">
             <span class="topbar-title">
-                @TituloFiltro()
-                <span class="topbar-sub">@SubtituloFiltro()</span>
+                @TituloAtual()
+                <span class="topbar-sub">@SubtituloAtual()</span>
             </span>
-            <button class="btn-theme" @onclick="ToggleTheme">
-                @(_darkMode ? "☀ Claro" : "🌙 Escuro")
-            </button>
-            <button class="btn-refresh" @onclick="CarregarChamados">↻ Atualizar</button>
+            <button class="btn-theme" @onclick="ToggleTheme">@(_darkMode ? "☀ Claro" : "🌙 Escuro")</button>
+            <button class="btn-refresh" @onclick="CarregarTudo">↻ Atualizar</button>
         </div>
 
         <div class="content">
 
-            <div class="stats-grid">
-                <div class="stat-card total @(_filtroAtivo == null ? "selected" : "")" @onclick="() => SetFiltro(null)">
-                    <div class="stat-label">Total</div>
-                    <div class="stat-value">@_chamados.Count</div>
-                    <div class="stat-hint">chamados atribuídos</div>
-                </div>
-                <div class="stat-card aberto @(_filtroAtivo == StatusChamado.Aberto ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.Aberto)">
-                    <div class="stat-label">Abertos</div>
-                    <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.Aberto)</div>
-                    <div class="stat-hint">aguardando início</div>
-                </div>
-                <div class="stat-card andamento @(_filtroAtivo == StatusChamado.EmAndamento ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.EmAndamento)">
-                    <div class="stat-label">Em andamento</div>
-                    <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.EmAndamento)</div>
-                    <div class="stat-hint">em atendimento</div>
-                </div>
-                <div class="stat-card finalizado @(_filtroAtivo == StatusChamado.Finalizado ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.Finalizado)">
-                    <div class="stat-label">Finalizados</div>
-                    <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.Finalizado)</div>
-                    <div class="stat-hint">resolvidos</div>
-                </div>
-            </div>
-
-            <div class="table-card">
-                <div class="table-header">
-                    <span class="table-title">@TituloFiltro()</span>
+            @if (_view == "meus")
+            {
+                <div class="stats-grid">
+                    <div class="stat-card total @(_filtroAtivo == null ? "selected" : "")" @onclick="() => SetFiltro(null)">
+                        <div class="stat-label">Total</div>
+                        <div class="stat-value">@_meusChamados.Count</div>
+                        <div class="stat-hint">atribuídos a você</div>
+                    </div>
+                    <div class="stat-card aberto @(_filtroAtivo == StatusChamado.Aberto ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.Aberto)">
+                        <div class="stat-label">Abertos</div>
+                        <div class="stat-value">@_meusChamados.Count(c => c.Status == StatusChamado.Aberto)</div>
+                        <div class="stat-hint">aguardando início</div>
+                    </div>
+                    <div class="stat-card andamento @(_filtroAtivo == StatusChamado.EmAndamento ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.EmAndamento)">
+                        <div class="stat-label">Em andamento</div>
+                        <div class="stat-value">@_meusChamados.Count(c => c.Status == StatusChamado.EmAndamento)</div>
+                        <div class="stat-hint">em atendimento</div>
+                    </div>
+                    <div class="stat-card finalizado @(_filtroAtivo == StatusChamado.Finalizado ? "selected" : "")" @onclick="() => SetFiltro(StatusChamado.Finalizado)">
+                        <div class="stat-label">Finalizados</div>
+                        <div class="stat-value">@_meusChamados.Count(c => c.Status == StatusChamado.Finalizado)</div>
+                        <div class="stat-hint">resolvidos</div>
+                    </div>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Chamado</th>
-                            <th>Solicitante</th>
-                            <th>Data</th>
-                            <th>Status</th>
-                            @if (_filtroAtivo != null)
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">@TituloAtual()</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Chamado</th>
+                                <th>Solicitante</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                @if (_filtroAtivo != null)
+                                {
+                                    <th>Ações</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_carregando)
                             {
-                                <th>Ações</th>
+                                <tr class="loading-row"><td colspan="5">Carregando...</td></tr>
                             }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (_carregando)
-                        {
-                            <tr class="loading-row"><td colspan="5">Carregando...</td></tr>
-                        }
-                        else if (!ChamadosFiltrados.Any())
-                        {
-                            <tr class="empty-row"><td colspan="5">Nenhum chamado encontrado.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var c in ChamadosFiltrados)
+                            else if (!MeusChamadosFiltrados.Any())
                             {
-                                <tr>
-                                    <td>
-                                        <div class="chamado-titulo-cell">@c.Titulo</div>
-                                        <div class="chamado-id-cell">#@c.Id</div>
-                                    </td>
-                                    <td style="color:var(--text-muted);">@c.Usuario</td>
-                                    <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">@c.DataAbertura.ToString("dd/MM/yy HH:mm")</td>
-                                    <td>
-                                        <span class="badge @BadgeClass(c.Status)">
-                                            <span class="badge-dot"></span>
-                                            @StatusLabel(c.Status)
-                                        </span>
-                                    </td>
-                                    @if (_filtroAtivo != null)
-                                    {
+                                <tr class="empty-row"><td colspan="5">Nenhum chamado encontrado.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in MeusChamadosFiltrados)
+                                {
+                                    <tr>
                                         <td>
-                                            <div class="actions">
-                                                @if (c.Status == StatusChamado.Aberto)
-                                                {
-                                                    <button class="btn-sm" @onclick="() => AtualizarStatus(c, StatusChamado.EmAndamento)">▶ Iniciar</button>
-                                                }
-                                                @if (c.Status == StatusChamado.EmAndamento)
-                                                {
-                                                    <button class="btn-sm success" @onclick="() => AtualizarStatus(c, StatusChamado.Finalizado)">✓ Finalizar</button>
-                                                }
-                                                @if (c.Status == StatusChamado.Finalizado)
-                                                {
-                                                    <button class="btn-sm warn" @onclick="() => AtualizarStatus(c, StatusChamado.Aberto)">↩ Reabrir</button>
-                                                }
-                                            </div>
+                                            <div class="chamado-titulo-cell">@c.Titulo</div>
+                                            <div class="chamado-id-cell">#@c.Id</div>
                                         </td>
-                                    }
-                                </tr>
+                                        <td style="color:var(--text-muted);">@c.Usuario</td>
+                                        <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">@c.DataAbertura.ToString("dd/MM/yy HH:mm")</td>
+                                        <td>
+                                            <span class="badge @BadgeClass(c.Status)">
+                                                <span class="badge-dot"></span>
+                                                @StatusLabel(c.Status)
+                                            </span>
+                                        </td>
+                                        @if (_filtroAtivo != null)
+                                        {
+                                            <td>
+                                                <div class="actions">
+                                                    @if (c.Status == StatusChamado.Aberto)
+                                                    {
+                                                        <button class="btn-sm" @onclick="() => AtualizarStatus(c, StatusChamado.EmAndamento)">▶ Iniciar</button>
+                                                    }
+                                                    @if (c.Status == StatusChamado.EmAndamento)
+                                                    {
+                                                        <button class="btn-sm success" @onclick="() => AtualizarStatus(c, StatusChamado.Finalizado)">✓ Finalizar</button>
+                                                    }
+                                                    @if (c.Status == StatusChamado.Finalizado)
+                                                    {
+                                                        <button class="btn-sm warn" @onclick="() => AtualizarStatus(c, StatusChamado.Aberto)">↩ Reabrir</button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
                             }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (_view == "fila")
+            {
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Fila geral</span>
+                        <span class="table-subtitle">Chamados abertos sem técnico atribuído</span>
+                        @if (_filaChamados.Count > 0)
+                        {
+                            <span class="fila-badge">@_filaChamados.Count aguardando</span>
                         }
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Chamado</th>
+                                <th>Solicitante</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_carregando)
+                            {
+                                <tr class="loading-row"><td colspan="4">Carregando...</td></tr>
+                            }
+                            else if (!_filaChamados.Any())
+                            {
+                                <tr class="empty-row"><td colspan="4">🎉 Nenhum chamado na fila!</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in _filaChamados.OrderBy(c => c.DataAbertura))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="chamado-titulo-cell">@c.Titulo</div>
+                                            <div class="chamado-id-cell">#@c.Id</div>
+                                        </td>
+                                        <td style="color:var(--text-muted);">@c.Usuario</td>
+                                        <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">@c.DataAbertura.ToString("dd/MM/yy HH:mm")</td>
+                                        <td>
+                                            <button class="btn-sm assumir" @onclick="() => Assumir(c)">⚡ Assumir</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
 
         </div>
     </div>
@@ -309,21 +361,23 @@
 }
 
 @code {
-    private List<Chamado> _chamados = new();
+    private List<Chamado> _meusChamados = new();
+    private List<Chamado> _filaChamados = new();
     private StatusChamado? _filtroAtivo = null;
+    private string _view = "meus";
     private bool _carregando = true;
     private bool _darkMode = true;
     private bool _toastVisivel = false;
     private string _toastMsg = "";
 
-    private IEnumerable<Chamado> ChamadosFiltrados =>
-        _filtroAtivo == null ? _chamados : _chamados.Where(c => c.Status == _filtroAtivo);
+    private IEnumerable<Chamado> MeusChamadosFiltrados =>
+        _filtroAtivo == null ? _meusChamados : _meusChamados.Where(c => c.Status == _filtroAtivo);
 
     protected override async Task OnInitializedAsync()
     {
         var saved = await JS.InvokeAsync<string>("localStorage.getItem", "bugo_theme");
         _darkMode = saved != "light";
-        await CarregarChamados();
+        await CarregarTudo();
     }
 
     private async Task ToggleTheme()
@@ -332,21 +386,29 @@
         await JS.InvokeVoidAsync("localStorage.setItem", "bugo_theme", _darkMode ? "dark" : "light");
     }
 
-    private async Task CarregarChamados()
+    private async Task CarregarTudo()
     {
         _carregando = true;
         try
         {
             var id = AuthService.UsuarioLogado?.Id;
-            _chamados = await Http.GetFromJsonAsync<List<Chamado>>($"api/chamados/tecnico/{id}") ?? new();
+            var todos = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados") ?? new();
+
+            _meusChamados = todos.Where(c => c.TecnicoId == id).ToList();
+            _filaChamados = todos.Where(c => c.TecnicoId == null && c.Status == StatusChamado.Aberto).ToList();
         }
-        catch
+        catch { }
+        finally { _carregando = false; }
+    }
+
+    private async Task Assumir(Chamado chamado)
+    {
+        var id = AuthService.UsuarioLogado?.Id;
+        var response = await Http.PutAsJsonAsync($"api/chamados/{chamado.Id}/assumir", id);
+        if (response.IsSuccessStatusCode)
         {
-            _chamados = new();
-        }
-        finally
-        {
-            _carregando = false;
+            await CarregarTudo();
+            await MostrarToast($"Chamado #{chamado.Id} assumido com sucesso!");
         }
     }
 
@@ -361,27 +423,36 @@
         }
     }
 
+    private void SetView(string view, StatusChamado? filtro)
+    {
+        _view = view;
+        _filtroAtivo = filtro;
+        StateHasChanged();
+    }
+
     private void SetFiltro(StatusChamado? status)
     {
         _filtroAtivo = status;
         StateHasChanged();
     }
 
-    private string TituloFiltro() => _filtroAtivo switch
+    private string TituloAtual() => _view == "fila" ? "Fila geral" : _filtroAtivo switch
     {
         StatusChamado.Aberto => "Abertos",
         StatusChamado.EmAndamento => "Em andamento",
         StatusChamado.Finalizado => "Finalizados",
-        _ => "Todos os chamados"
+        _ => "Meus chamados"
     };
 
-    private string SubtituloFiltro() => _filtroAtivo switch
-    {
-        StatusChamado.Aberto => "Aguardando início",
-        StatusChamado.EmAndamento => "Em atendimento",
-        StatusChamado.Finalizado => "Resolvidos",
-        _ => "Chamados atribuídos a você"
-    };
+    private string SubtituloAtual() => _view == "fila"
+        ? "Chamados aguardando atribuição"
+        : _filtroAtivo switch
+        {
+            StatusChamado.Aberto => "Aguardando início",
+            StatusChamado.EmAndamento => "Em atendimento",
+            StatusChamado.Finalizado => "Resolvidos",
+            _ => "Chamados atribuídos a você"
+        };
 
     private string Iniciais(string? nome)
     {

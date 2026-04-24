@@ -1,6 +1,415 @@
 ﻿@page "/usuario/dashboard"
-@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Usuario")]
-@layout MainLayout
+@layout EmptyLayout
+@inject IAuthService AuthService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<h3>Meus Chamados</h3>
+@using Bugo_shared.Models
+@using Bugo_shared.Enum
+@using Microsoft.AspNetCore.Authorization
+
+<PageTitle>Meus Chamados — Bu&amp;Go!</PageTitle>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --bg: #f7f8fc;
+        --card: #ffffff;
+        --border: #e8ecf4;
+        --text: #111827;
+        --text-muted: #6b7280;
+        --accent: #2563eb;
+        --accent-light: #eff6ff;
+        --accent-hover: #1d4ed8;
+        --topbar: #ffffff;
+        --prio-baixa-bg:#f0fdf4;--prio-baixa:#16a34a;
+        --prio-media-bg:#fefce8;--prio-media:#ca8a04;
+        --prio-alta-bg:#fff7ed;--prio-alta:#ea580c;
+        --prio-critica-bg:#fef2f2;--prio-critica:#dc2626;
+        --badge-open-bg:#fffbeb;--badge-open:#b45309;
+        --badge-progress-bg:#eff6ff;--badge-progress:#1d4ed8;
+        --badge-done-bg:#f0fdf4;--badge-done:#15803d;
+    }
+
+    .dark {
+        --bg:#0f172a;--card:#1e293b;--border:#2d3f55;
+        --text:#f1f5f9;--text-muted:#64748b;--topbar:#1e293b;
+        --accent-light:rgba(37,99,235,0.1);
+        --prio-baixa-bg:rgba(22,163,74,0.1);--prio-baixa:#4ade80;
+        --prio-media-bg:rgba(202,138,4,0.1);--prio-media:#fbbf24;
+        --prio-alta-bg:rgba(234,88,12,0.1);--prio-alta:#fb923c;
+        --prio-critica-bg:rgba(220,38,38,0.1);--prio-critica:#f87171;
+        --badge-open-bg:rgba(180,83,9,0.1);--badge-open:#fbbf24;
+        --badge-progress-bg:rgba(29,78,216,0.1);--badge-progress:#60a5fa;
+        --badge-done-bg:rgba(21,128,61,0.1);--badge-done:#4ade80;
+    }
+
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+    .topbar { background: var(--topbar); border-bottom: 1px solid var(--border); height: 58px; display: flex; align-items: center; padding: 0 24px; gap: 12px; position: sticky; top: 0; z-index: 50; transition: background 0.3s, border-color 0.3s; }
+    .logo { display: flex; align-items: center; gap: 9px; flex: 1; }
+    .logo-icon { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .logo-text { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .logo-text span { color: var(--accent); }
+    .topbar-user { font-size: 13px; color: var(--text-muted); }
+    .topbar-user strong { color: var(--text); font-weight: 600; }
+    .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 13px; padding: 6px 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+    .page { max-width: 860px; margin: 0 auto; padding: 2rem 24px; }
+
+    .hero { background: var(--accent); border-radius: 16px; padding: 28px 32px; margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .hero-text h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .hero-text p { font-size: 13px; color: rgba(255,255,255,0.75); }
+    .btn-novo { background: #fff; color: var(--accent); border: none; border-radius: 10px; padding: 11px 22px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: opacity 0.2s, transform 0.1s; flex-shrink: 0; }
+    .btn-novo:hover { opacity: 0.92; }
+    .btn-novo:active { transform: scale(0.97); }
+
+    .section-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-count { background: var(--border); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; font-family: 'DM Mono', monospace; }
+
+    .chamados-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .chamado-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; transition: border-color 0.15s, box-shadow 0.15s; }
+    .chamado-item:hover { border-color: #c7d7f8; box-shadow: 0 2px 12px rgba(37,99,235,0.06); }
+    .chamado-prio-bar { width: 4px; border-radius: 4px; align-self: stretch; flex-shrink: 0; min-height: 40px; }
+    .prio-bar-baixa { background: #16a34a; }
+    .prio-bar-media { background: #ca8a04; }
+    .prio-bar-alta { background: #ea580c; }
+    .prio-bar-critica { background: #dc2626; }
+    .chamado-info { flex: 1; min-width: 0; }
+    .chamado-titulo { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chamado-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-family: 'DM Mono', monospace; }
+    .chamado-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .badge-aberto { background: var(--badge-open-bg); color: var(--badge-open); }
+    .badge-aberto .badge-dot { background: var(--badge-open); }
+    .badge-andamento { background: var(--badge-progress-bg); color: var(--badge-progress); }
+    .badge-andamento .badge-dot { background: var(--badge-progress); }
+    .badge-finalizado { background: var(--badge-done-bg); color: var(--badge-done); }
+    .badge-finalizado .badge-dot { background: var(--badge-done); }
+
+    .empty { text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 14px; background: var(--card); border: 1px dashed var(--border); border-radius: 12px; }
+    .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 14px; }
+
+    .historico-toggle { background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); font-size: 13px; font-weight: 500; padding: 9px 16px; cursor: pointer; font-family: inherit; width: 100%; text-align: left; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; margin-bottom: 12px; }
+    .historico-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 460px; overflow: hidden; }
+    .modal-head { padding: 22px 24px 0; }
+    .modal-head h3 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .modal-head p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-foot { padding: 0 24px 22px; display: flex; justify-content: flex-end; gap: 8px; }
+
+    .field label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .field input, .field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 13px; font-size: 14px; color: var(--text); font-family: inherit; outline: none; transition: border-color 0.2s; }
+    .field input:focus, .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .prio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .prio-opt { border: 1.5px solid var(--border); border-radius: 9px; padding: 8px 6px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-muted); transition: all 0.15s; background: var(--bg); font-family: inherit; }
+    .prio-opt:hover { border-color: var(--accent); }
+    .prio-opt.sel-baixa { border-color: #16a34a; background: var(--prio-baixa-bg); color: var(--prio-baixa); }
+    .prio-opt.sel-media { border-color: #ca8a04; background: var(--prio-media-bg); color: var(--prio-media); }
+    .prio-opt.sel-alta { border-color: #ea580c; background: var(--prio-alta-bg); color: var(--prio-alta); }
+    .prio-opt.sel-critica { border-color: #dc2626; background: var(--prio-critica-bg); color: var(--prio-critica); }
+
+    .err-msg { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 9px 13px; font-size: 13px; color: #dc2626; }
+    .btn-cancel { background: transparent; border: 1px solid var(--border); border-radius: 9px; color: var(--text-muted); font-size: 13px; padding: 9px 18px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-cancel:hover { color: var(--text); border-color: var(--text-muted); }
+    .btn-submit { background: var(--accent); border: none; border-radius: 9px; color: #fff; font-size: 13px; font-weight: 600; padding: 9px 20px; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+    .btn-submit:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid #22c55e; border-radius: 10px; padding: 12px 18px; color: var(--text); font-size: 13px; z-index: 999; display: flex; align-items: center; gap: 8px; animation: sup 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    @@keyframes sup { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
+<div class="@(_dark ? "dark" : "")" style="min-height:100vh;background:var(--bg);transition:background 0.3s;">
+
+    <div class="topbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                </svg>
+            </div>
+            <span class="logo-text">Bu<span>&</span>Go!</span>
+        </div>
+        <span class="topbar-user">Olá, <strong>@AuthService.UsuarioLogado?.Nome</strong></span>
+        <button class="btn-icon" @onclick="ToggleTheme">@(_dark ? "☀" : "🌙")</button>
+        <button class="btn-icon" @onclick="Logout">Sair</button>
+    </div>
+
+    <div class="page">
+
+        <div class="hero">
+            <div class="hero-text">
+                <h2>Precisa de ajuda?</h2>
+                <p>Abra um chamado e nossa equipe entrará em contato.</p>
+            </div>
+            <button class="btn-novo" @onclick="AbrirModal">+ Abrir Chamado</button>
+        </div>
+
+        @if (_carregando)
+        {
+            <div class="loading">Carregando seus chamados...</div>
+        }
+        else
+        {
+            <div class="section-title">
+                Chamados ativos
+                <span class="section-count">@Ativos.Count</span>
+            </div>
+
+            <div class="chamados-stack">
+                @if (!Ativos.Any())
+                {
+                    <div class="empty">Nenhum chamado ativo no momento 🎉</div>
+                }
+                else
+                {
+                    @foreach (var c in Ativos)
+                    {
+                        <div class="chamado-item">
+                            <div class="chamado-prio-bar @PrioBarClass(c.Prioridade)"></div>
+                            <div class="chamado-info">
+                                <div class="chamado-titulo">@c.Titulo</div>
+                                <div class="chamado-meta">#@c.Id · @c.DataAbertura.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                            <div class="chamado-right">
+                                <span class="badge @BadgeClass(c.Status)">
+                                    <span class="badge-dot"></span>
+                                    @StatusLabel(c.Status)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <button class="historico-toggle" @onclick="() => _historicoAberto = !_historicoAberto">
+                <span>Histórico de chamados finalizados <span class="section-count" style="margin-left:6px;">@Finalizados.Count</span></span>
+                <span>@(_historicoAberto ? "▲" : "▼")</span>
+            </button>
+
+            @if (_historicoAberto)
+            {
+                <div class="chamados-stack">
+                    @if (!Finalizados.Any())
+                    {
+                        <div class="empty">Nenhum chamado finalizado ainda.</div>
+                    }
+                    else
+                    {
+                        @foreach (var c in Finalizados)
+                        {
+                            <div class="chamado-item" style="opacity:0.7;">
+                                <div class="chamado-prio-bar @PrioBarClass(c.Prioridade)"></div>
+                                <div class="chamado-info">
+                                    <div class="chamado-titulo">@c.Titulo</div>
+                                    <div class="chamado-meta">#@c.Id · @c.DataAbertura.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                                <div class="chamado-right">
+                                    <span class="badge badge-finalizado">
+                                        <span class="badge-dot"></span>
+                                        Finalizado
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@if (_modalAberto)
+{
+    <div class="overlay" @onclick="FecharModal">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-head">
+                <h3>Abrir novo chamado</h3>
+                <p>Preencha os detalhes e nossa equipe cuidará disso.</p>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_formErro))
+                {
+                    <div class="err-msg">@_formErro</div>
+                }
+                <div class="field">
+                    <label>Título</label>
+                    <input type="text" @bind="_novoTitulo" placeholder="Ex: Não consigo acessar o sistema" />
+                </div>
+                <div class="field">
+                    <label>Descrição</label>
+                    <textarea @bind="_novaDescricao" placeholder="Descreva o problema com detalhes..."></textarea>
+                </div>
+                <div class="field">
+                    <label>Prioridade</label>
+                    <div class="prio-grid">
+                        <button class="prio-opt @(_novaPrioridade == PrioridadeEnum.Baixa ? "sel-baixa" : "")" @onclick="() => _novaPrioridade = PrioridadeEnum.Baixa">↓ Baixa</button>
+                        <button class="prio-opt @(_novaPrioridade == PrioridadeEnum.Media ? "sel-media" : "")" @onclick="() => _novaPrioridade = PrioridadeEnum.Media">→ Média</button>
+                        <button class="prio-opt @(_novaPrioridade == PrioridadeEnum.Alta ? "sel-alta" : "")" @onclick="() => _novaPrioridade = PrioridadeEnum.Alta">↑ Alta</button>
+                        <button class="prio-opt @(_novaPrioridade == PrioridadeEnum.Critica ? "sel-critica" : "")" @onclick="() => _novaPrioridade = PrioridadeEnum.Critica">⚠ Crítica</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn-cancel" @onclick="FecharModal">Cancelar</button>
+                <button class="btn-submit" @onclick="EnviarChamado" disabled="@_enviando">
+                    @(_enviando ? "Enviando..." : "Abrir Chamado")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_toastVisivel)
+{
+    <div class="toast"><span class="toast-dot"></span>@_toastMsg</div>
+}
+
+@code {
+    private List<Chamado> _chamados = new();
+    private bool _carregando = true;
+    private bool _dark = true;
+    private bool _historicoAberto = false;
+    private bool _modalAberto = false;
+    private bool _enviando = false;
+    private bool _toastVisivel = false;
+    private string _toastMsg = "";
+    private string _novoTitulo = "";
+    private string _novaDescricao = "";
+    private PrioridadeEnum _novaPrioridade = PrioridadeEnum.Media;
+    private string _formErro = "";
+
+    private List<Chamado> Ativos => _chamados
+        .Where(c => c.Status != StatusChamado.Finalizado)
+        .OrderByDescending(c => c.DataAbertura)
+        .ToList();
+
+    private List<Chamado> Finalizados => _chamados
+        .Where(c => c.Status == StatusChamado.Finalizado)
+        .OrderByDescending(c => c.DataAbertura)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var saved = await JS.InvokeAsync<string>("localStorage.getItem", "bugo_theme");
+        _dark = saved != "light";
+        await CarregarChamados();
+    }
+
+    private async Task ToggleTheme()
+    {
+        _dark = !_dark;
+        await JS.InvokeVoidAsync("localStorage.setItem", "bugo_theme", _dark ? "dark" : "light");
+    }
+
+    private async Task CarregarChamados()
+    {
+        _carregando = true;
+        try
+        {
+            var nome = AuthService.UsuarioLogado?.Nome;
+            var todos = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados") ?? new();
+            _chamados = todos.Where(c => c.Usuario == nome).ToList();
+        }
+        catch { _chamados = new(); }
+        finally { _carregando = false; }
+    }
+
+    private void AbrirModal()
+    {
+        _novoTitulo = "";
+        _novaDescricao = "";
+        _formErro = "";
+        _novaPrioridade = PrioridadeEnum.Media;
+        _modalAberto = true;
+        StateHasChanged();
+    }
+
+    private void FecharModal() => _modalAberto = false;
+
+    private async Task EnviarChamado()
+    {
+        _formErro = "";
+        if (string.IsNullOrWhiteSpace(_novoTitulo)) { _formErro = "Informe o título."; return; }
+        if (string.IsNullOrWhiteSpace(_novaDescricao)) { _formErro = "Informe a descrição."; return; }
+
+        _enviando = true;
+        try
+        {
+            var novo = new Chamado
+            {
+                Titulo = _novoTitulo,
+                Descricao = _novaDescricao,
+                Prioridade = _novaPrioridade,
+                Status = StatusChamado.Aberto,
+                Usuario = AuthService.UsuarioLogado?.Nome ?? "",
+                DataAbertura = DateTime.UtcNow
+            };
+
+            var response = await Http.PostAsJsonAsync("api/chamados", novo);
+            if (response.IsSuccessStatusCode)
+            {
+                FecharModal();
+                await CarregarChamados();
+                await MostrarToast("Chamado aberto com sucesso!");
+            }
+            else { _formErro = "Erro ao abrir chamado. Tente novamente."; }
+        }
+        catch { _formErro = "Erro ao conectar com o servidor."; }
+        finally { _enviando = false; }
+    }
+
+    private string BadgeClass(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "badge-aberto",
+        StatusChamado.EmAndamento => "badge-andamento",
+        StatusChamado.Finalizado => "badge-finalizado",
+        _ => ""
+    };
+
+    private string StatusLabel(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "Aberto",
+        StatusChamado.EmAndamento => "Em andamento",
+        StatusChamado.Finalizado => "Finalizado",
+        _ => ""
+    };
+
+    private string PrioBarClass(PrioridadeEnum p) => p switch
+    {
+        PrioridadeEnum.Baixa => "prio-bar-baixa",
+        PrioridadeEnum.Media => "prio-bar-media",
+        PrioridadeEnum.Alta => "prio-bar-alta",
+        PrioridadeEnum.Critica => "prio-bar-critica",
+        _ => ""
+    };
+
+    private async Task MostrarToast(string msg)
+    {
+        _toastMsg = msg; _toastVisivel = true; StateHasChanged();
+        await Task.Delay(3000);
+        _toastVisivel = false; StateHasChanged();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}
