@@ -19,7 +19,8 @@ public class UsuarioService
 
     public Usuario Create(Usuario usuario)
     {
-        usuario.Id = 0; // garante que o banco gera o Id
+        usuario.Id = 0;
+        usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
         _context.Usuarios.Add(usuario);
         _context.SaveChanges();
         return usuario;
@@ -27,8 +28,14 @@ public class UsuarioService
 
     public Usuario? Login(string email, string senha)
     {
-        return _context.Usuarios
-            .FirstOrDefault(x => x.Email == email && x.Senha == senha);
+        var usuario = _context.Usuarios.FirstOrDefault(x => x.Email == email);
+
+        if (usuario == null) return null;
+
+        if (!BCrypt.Net.BCrypt.Verify(senha, usuario.Senha))
+            return null;
+
+        return usuario;
     }
 
     public async Task<Usuario?> GetByIdAsync(int id)
@@ -46,7 +53,7 @@ public class UsuarioService
         user.Perfil = atualizado.Perfil;
 
         if (!string.IsNullOrEmpty(atualizado.Senha))
-            user.Senha = atualizado.Senha;
+            user.Senha = BCrypt.Net.BCrypt.HashPassword(atualizado.Senha);
 
         _context.SaveChanges();
         return user;
