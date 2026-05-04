@@ -1,17 +1,26 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+                
                 <NotAuthorized>
-                    <RedirectToLogin />
+                    @if (!context.User.Identity.IsAuthenticated)
+                    {
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <p>Você não tem permissão.</p>
+                    }
                 </NotAuthorized>
-                <Authorizing>
-                    <p>Verificando acesso...</p>
-                </Authorizing>
+
             </AuthorizeRouteView>
         </Found>
+
         <NotFound>
-            <p>Página não encontrada.</p>
+            <LayoutView Layout="@typeof(Layout.MainLayout)">
+                <Pages.NotFound />
+            </LayoutView>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
