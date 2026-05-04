@@ -1,6 +1,695 @@
 ﻿@page "/admin/dashboard"
-@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
-@layout MainLayout
+@layout EmptyLayout
+@inject IAuthService AuthService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<h3>Painel Admin</h3>
+@using Bugo_shared.Models
+@using Bugo_shared.Enum
+@using Bugo_blazor.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using ModelUsuario = Bugo_shared.Models.Usuario
+
+<PageTitle>Painel Admin — Bu&amp;Go!</PageTitle>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --sidebar-w:220px;--topbar-h:60px;
+        --bg:#f4f5f7;--sidebar-bg:#0d1b2e;--sidebar-text:#8fa3bc;--sidebar-accent:#1e6fd9;
+        --card-bg:#ffffff;--border:#e4e8ef;--text:#1a2535;--text-muted:#6b7a90;
+        --accent:#1e6fd9;--accent-hover:#1558b0;--topbar-bg:#ffffff;
+        --badge-open-bg:#fff8e6;--badge-open:#c47d00;
+        --badge-progress-bg:#e8f0fd;--badge-progress:#1e6fd9;
+        --badge-done-bg:#e6faf2;--badge-done:#1a9e63;
+        --danger:#e05252;--danger-bg:rgba(224,82,82,0.08);
+    }
+    .dark-theme {
+        --bg:#0a1628;--sidebar-bg:#060e1c;--card-bg:#0f2040;--border:#1a3050;
+        --text:#e2eaf5;--text-muted:#5a7a9a;--topbar-bg:#0d1b2e;
+        --badge-open-bg:rgba(196,125,0,0.12);--badge-open:#f5a623;
+        --badge-progress-bg:rgba(30,111,217,0.12);--badge-progress:#5b9ef5;
+        --badge-done-bg:rgba(26,158,99,0.12);--badge-done:#2ecc71;
+    }
+
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); }
+    .layout { display:flex; min-height:100vh; }
+    .sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; }
+    .sidebar-logo { padding:0 20px; height:var(--topbar-h); display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .logo-icon-sm { width:32px; height:32px; background:var(--sidebar-accent); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .logo-name { font-size:15px; font-weight:600; color:#fff; letter-spacing:-0.2px; }
+    .logo-name span { color:#5b9ef5; }
+    .sidebar-nav { flex:1; padding:16px 10px; overflow-y:auto; }
+    .nav-section-label { font-size:10px; font-weight:600; color:rgba(143,163,188,0.5); letter-spacing:0.8px; text-transform:uppercase; padding:0 10px; margin:16px 0 6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; color:var(--sidebar-text); font-size:13.5px; font-weight:400; transition:all 0.15s; border:none; background:transparent; width:100%; font-family:'DM Sans',sans-serif; margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,0.06); color:#fff; }
+    .nav-item.active { background:rgba(30,111,217,0.2); color:#fff; font-weight:500; }
+    .nav-icon { font-size:16px; width:20px; text-align:center; flex-shrink:0; }
+    .nav-badge { margin-left:auto; background:var(--sidebar-accent); color:white; font-size:10px; font-weight:600; padding:2px 7px; border-radius:10px; font-family:'DM Mono',monospace; }
+    .sidebar-user { padding:14px 16px; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:10px; }
+    .avatar { width:34px; height:34px; border-radius:50%; background:var(--sidebar-accent); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:white; flex-shrink:0; }
+    .user-details { flex:1; min-width:0; }
+    .user-name { font-size:13px; font-weight:500; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-role { font-size:11px; color:var(--sidebar-text); }
+    .main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
+    .topbar { height:var(--topbar-h); background:var(--topbar-bg); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 28px; gap:16px; position:sticky; top:0; z-index:50; transition:background 0.3s,border-color 0.3s; }
+    .topbar-title { font-size:15px; font-weight:600; color:var(--text); flex:1; }
+    .topbar-sub { font-size:12px; color:var(--text-muted); font-weight:400; margin-left:8px; }
+    .btn-theme { background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-size:13px; padding:6px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .btn-theme:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-primary { background:var(--accent); border:none; border-radius:8px; color:white; font-size:13px; padding:7px 16px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; transition:background 0.2s; }
+    .btn-primary:hover { background:var(--accent-hover); }
+    .content { padding:28px; flex:1; }
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+    .stat-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:20px; position:relative; overflow:hidden; transition:all 0.2s; }
+    .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+    .stat-card.s1::before { background:#8b8fa3; }
+    .stat-card.s2::before { background:#c47d00; }
+    .stat-card.s3::before { background:#1e6fd9; }
+    .stat-card.s4::before { background:#1a9e63; }
+    .stat-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:10px; }
+    .stat-value { font-size:32px; font-weight:600; color:var(--text); font-family:'DM Mono',monospace; line-height:1; }
+    .stat-hint { font-size:11px; color:var(--text-muted); margin-top:6px; }
+    .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+    .chart-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    .chart-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:16px; }
+    .bar-chart { display:flex; align-items:flex-end; gap:12px; height:120px; }
+    .bar-col { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; height:100%; justify-content:flex-end; }
+    .bar { width:100%; border-radius:6px 6px 0 0; transition:height 0.5s ease; min-height:4px; }
+    .bar-label { font-size:10px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+    .bar-val { font-size:11px; font-weight:600; color:var(--text); font-family:'DM Mono',monospace; }
+    .donut-wrap { display:flex; align-items:center; gap:20px; }
+    .donut-svg { flex-shrink:0; }
+    .donut-legend { display:flex; flex-direction:column; gap:8px; }
+    .legend-item { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); }
+    .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .legend-val { font-weight:600; color:var(--text); font-family:'DM Mono',monospace; margin-left:auto; }
+    .table-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:24px; }
+    .table-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .table-title { font-size:14px; font-weight:600; color:var(--text); flex:1; }
+    .tab-pills { display:flex; gap:6px; }
+    .tab-pill { font-size:12px; font-weight:500; padding:5px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+    .tab-pill:hover { border-color:var(--accent); color:var(--accent); }
+    .tab-pill.active { background:var(--accent); border-color:var(--accent); color:white; }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { border-bottom:1px solid var(--border); }
+    th { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; padding:12px 24px; text-align:left; }
+    td { padding:13px 24px; font-size:13.5px; color:var(--text); border-bottom:1px solid var(--border); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tbody tr { transition:background 0.1s; }
+    tbody tr:hover { background:rgba(30,111,217,0.03); }
+    .cell-title { font-weight:500; }
+    .cell-sub { font-size:12px; color:var(--text-muted); font-family:'DM Mono',monospace; margin-top:2px; }
+    .badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+    .badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .badge-aberto { background:var(--badge-open-bg); color:var(--badge-open); }
+    .badge-aberto .badge-dot { background:var(--badge-open); }
+    .badge-andamento { background:var(--badge-progress-bg); color:var(--badge-progress); }
+    .badge-andamento .badge-dot { background:var(--badge-progress); }
+    .badge-finalizado { background:var(--badge-done-bg); color:var(--badge-done); }
+    .badge-finalizado .badge-dot { background:var(--badge-done); }
+    .perfil-badge { display:inline-flex; align-items:center; font-size:11px; font-weight:600; padding:3px 10px; border-radius:6px; }
+    .perfil-admin { background:rgba(30,111,217,0.1); color:#1e6fd9; }
+    .perfil-tecnico { background:rgba(139,143,163,0.1); color:#6b7a90; }
+    .perfil-usuario { background:rgba(26,158,99,0.1); color:#1a9e63; }
+    .actions { display:flex; gap:6px; }
+    .btn-sm { font-size:12px; font-weight:500; padding:5px 12px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+    .btn-sm:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-sm.danger:hover { border-color:var(--danger); color:var(--danger); background:var(--danger-bg); }
+    .empty-row td { text-align:center; padding:2.5rem; color:var(--text-muted); font-size:14px; }
+    .loading-row td { text-align:center; padding:3rem; color:var(--text-muted); }
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:center; justify-content:center; padding:1rem; }
+    .modal { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; width:100%; max-width:440px; overflow:hidden; }
+    .modal-head { padding:22px 24px 0; }
+    .modal-head h3 { font-size:16px; font-weight:700; color:var(--text); }
+    .modal-head p { font-size:13px; color:var(--text-muted); margin-top:4px; }
+    .modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+    .modal-foot { padding:0 24px 22px; display:flex; justify-content:flex-end; gap:8px; }
+    .field label { display:block; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+    .field input, .field select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:10px 13px; font-size:14px; color:var(--text); font-family:inherit; outline:none; transition:border-color 0.2s; }
+    .field input:focus, .field select:focus { border-color:var(--accent); }
+    .field input::placeholder { color:var(--text-muted); opacity:0.6; }
+    .err-msg { background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.2); border-radius:8px; padding:9px 13px; font-size:13px; color:#dc2626; }
+    .btn-cancel { background:transparent; border:1px solid var(--border); border-radius:9px; color:var(--text-muted); font-size:13px; padding:9px 18px; cursor:pointer; font-family:inherit; }
+    .btn-submit { background:var(--accent); border:none; border-radius:9px; color:#fff; font-size:13px; font-weight:600; padding:9px 20px; cursor:pointer; font-family:inherit; transition:background 0.2s; }
+    .btn-submit:hover:not(:disabled) { background:var(--accent-hover); }
+    .btn-submit:disabled { opacity:0.6; cursor:not-allowed; }
+    .btn-delete { background:#e05252; border:none; border-radius:9px; color:#fff; font-size:13px; font-weight:600; padding:9px 20px; cursor:pointer; font-family:inherit; }
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--card-bg); border:1px solid var(--accent); border-radius:10px; padding:12px 20px; color:var(--text); font-size:13px; z-index:999; box-shadow:0 4px 20px rgba(0,0,0,0.15); animation:slideup 0.3s ease; display:flex; align-items:center; gap:8px; }
+    .toast-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+    @@keyframes slideup { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
+<div class="@(_dark ? "dark-theme" : "")" style="min-height:100vh;background:var(--bg);transition:background 0.3s;">
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon-sm">
+                <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                </svg>
+            </div>
+            <span class="logo-name">Bu<span>&</span>Go!</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Visão geral</div>
+            <button class="nav-item @(_view == "dashboard" ? "active" : "")" @onclick='() => _view = "dashboard"'>
+                <span class="nav-icon">⊞</span> Dashboard
+            </button>
+            <div class="nav-section-label">Chamados</div>
+            <button class="nav-item @(_view == "chamados" ? "active" : "")" @onclick='() => _view = "chamados"'>
+                <span class="nav-icon">📋</span> Todos os chamados
+                <span class="nav-badge">@_chamados.Count</span>
+            </button>
+            <div class="nav-section-label">Usuários</div>
+            <button class="nav-item @(_view == "usuarios" ? "active" : "")" @onclick='() => _view = "usuarios"'>
+                <span class="nav-icon">👥</span> Gerenciar usuários
+                <span class="nav-badge">@_usuarios.Count</span>
+            </button>
+            <div class="nav-section-label">Conta</div>
+            <button class="nav-item" @onclick="Logout">
+                <span class="nav-icon">→</span> Sair
+            </button>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="avatar">@Iniciais(AuthService.UsuarioLogado?.Nome)</div>
+            <div class="user-details">
+                <div class="user-name">@AuthService.UsuarioLogado?.Nome</div>
+                <div class="user-role">Administrador</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <div class="topbar">
+            <span class="topbar-title">
+                @TituloView()
+                <span class="topbar-sub">@SubtituloView()</span>
+            </span>
+            <button class="btn-theme" @onclick="ToggleTheme">@(_dark ? "☀ Claro" : "🌙 Escuro")</button>
+            @if (_view == "usuarios")
+            {
+                <button class="btn-primary" @onclick="AbrirModalNovoUsuario">+ Novo usuário</button>
+            }
+            else
+            {
+                <button class="btn-primary" @onclick="CarregarTudo">↻ Atualizar</button>
+            }
+        </div>
+
+        <div class="content">
+
+            @if (_view == "dashboard")
+            {
+                <div class="stats-grid">
+                    <div class="stat-card s1">
+                        <div class="stat-label">Total chamados</div>
+                        <div class="stat-value">@_chamados.Count</div>
+                        <div class="stat-hint">no sistema</div>
+                    </div>
+                    <div class="stat-card s2">
+                        <div class="stat-label">Abertos</div>
+                        <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.Aberto)</div>
+                        <div class="stat-hint">aguardando</div>
+                    </div>
+                    <div class="stat-card s3">
+                        <div class="stat-label">Em andamento</div>
+                        <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.EmAndamento)</div>
+                        <div class="stat-hint">em atendimento</div>
+                    </div>
+                    <div class="stat-card s4">
+                        <div class="stat-label">Finalizados</div>
+                        <div class="stat-value">@_chamados.Count(c => c.Status == StatusChamado.Finalizado)</div>
+                        <div class="stat-hint">resolvidos</div>
+                    </div>
+                </div>
+
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-title">Distribuição por status</div>
+                        <div class="donut-wrap">
+                            @{
+                                var total = _chamados.Count;
+                                var abertos = _chamados.Count(c => c.Status == StatusChamado.Aberto);
+                                var andamento = _chamados.Count(c => c.Status == StatusChamado.EmAndamento);
+                                var finalizados = _chamados.Count(c => c.Status == StatusChamado.Finalizado);
+                                double pAberto = total > 0 ? (double)abertos / total * 100 : 0;
+                                double pAndamento = total > 0 ? (double)andamento / total * 100 : 0;
+                                double pFinalizado = total > 0 ? (double)finalizados / total * 100 : 0;
+                                double r = 40;
+                                double circum = 2 * Math.PI * r;
+                                double offAberto = 0;
+                                double offAndamento = circum * (1 - pAberto / 100);
+                                double offFinalizado = circum * (1 - (pAberto + pAndamento) / 100);
+                            }
+                            <svg class="donut-svg" width="120" height="120" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="@r" fill="none" stroke="var(--border)" stroke-width="14"/>
+                                @if (finalizados > 0)
+                                {
+                                    <circle cx="50" cy="50" r="@r" fill="none" stroke="#1a9e63" stroke-width="14"
+                                            stroke-dasharray="@(circum * pFinalizado / 100) @circum"
+                                            stroke-dashoffset="@offFinalizado"
+                                            transform="rotate(-90 50 50)"/>
+                                }
+                                @if (andamento > 0)
+                                {
+                                    <circle cx="50" cy="50" r="@r" fill="none" stroke="#1e6fd9" stroke-width="14"
+                                            stroke-dasharray="@(circum * pAndamento / 100) @circum"
+                                            stroke-dashoffset="@offAndamento"
+                                            transform="rotate(-90 50 50)"/>
+                                }
+                                @if (abertos > 0)
+                                {
+                                    <circle cx="50" cy="50" r="@r" fill="none" stroke="#c47d00" stroke-width="14"
+                                            stroke-dasharray="@(circum * pAberto / 100) @circum"
+                                            stroke-dashoffset="@offAberto"
+                                            transform="rotate(-90 50 50)"/>
+                                }
+                                <text x="50" y="46" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text)" font-family="DM Mono">@total</text>
+                                <text x="50" y="58" text-anchor="middle" font-size="8" fill="var(--text-muted)" font-family="DM Sans">total</text>
+                            </svg>
+                            <div class="donut-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background:#c47d00;"></span>Abertos<span class="legend-val">@abertos</span></div>
+                                <div class="legend-item"><span class="legend-dot" style="background:#1e6fd9;"></span>Em andamento<span class="legend-val">@andamento</span></div>
+                                <div class="legend-item"><span class="legend-dot" style="background:#1a9e63;"></span>Finalizados<span class="legend-val">@finalizados</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-title">Chamados por técnico</div>
+                        @{
+                            var tecnicos = _usuarios.Where(u => u.Perfil == PerfilEnum.Tecnico).ToList();
+                            var maxTecnico = tecnicos.Any() ? tecnicos.Max(t => _chamados.Count(c => c.TecnicoId == t.Id)) : 0;
+                        }
+                        @if (!tecnicos.Any())
+                        {
+                            <div style="color:var(--text-muted);font-size:13px;padding-top:10px;">Nenhum técnico cadastrado.</div>
+                        }
+                        else
+                        {
+                            <div class="bar-chart">
+                                @foreach (var t in tecnicos)
+                                {
+                                    var count = _chamados.Count(c => c.TecnicoId == t.Id);
+                                    var height = maxTecnico > 0 ? (double)count / maxTecnico * 100 : 0;
+                                    var firstName = t.Nome.Split(' ')[0];
+                                    <div class="bar-col">
+                                        <div class="bar-val">@count</div>
+                                        <div class="bar" style="height:@(height)%;background:var(--accent);"></div>
+                                        <div class="bar-label">@firstName</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Últimos chamados</span>
+                        <button class="tab-pill active" @onclick='() => _view = "chamados"'>Ver todos →</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>Chamado</th><th>Solicitante</th><th>Data</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @if (!_chamados.Any())
+                            {
+                                <tr class="empty-row"><td colspan="4">Nenhum chamado ainda.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in _chamados.OrderByDescending(c => c.DataAbertura).Take(5))
+                                {
+                                    <tr>
+                                        <td><div class="cell-title">@c.Titulo</div><div class="cell-sub">#@c.Id</div></td>
+                                        <td style="color:var(--text-muted);">@c.Usuario</td>
+                                        <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">@c.DataAbertura.ToString("dd/MM/yy HH:mm")</td>
+                                        <td><span class="badge @BadgeClass(c.Status)"><span class="badge-dot"></span>@StatusLabel(c.Status)</span></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (_view == "chamados")
+            {
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Todos os chamados</span>
+                        <div class="tab-pills">
+                            <button class="tab-pill @(_filtroChamado == null ? "active" : "")" @onclick="() => _filtroChamado = null">Todos</button>
+                            <button class="tab-pill @(_filtroChamado == StatusChamado.Aberto ? "active" : "")" @onclick="() => _filtroChamado = StatusChamado.Aberto">Abertos</button>
+                            <button class="tab-pill @(_filtroChamado == StatusChamado.EmAndamento ? "active" : "")" @onclick="() => _filtroChamado = StatusChamado.EmAndamento">Em andamento</button>
+                            <button class="tab-pill @(_filtroChamado == StatusChamado.Finalizado ? "active" : "")" @onclick="() => _filtroChamado = StatusChamado.Finalizado">Finalizados</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead><tr><th>Chamado</th><th>Solicitante</th><th>Técnico</th><th>Data</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @if (_carregando)
+                            {
+                                <tr class="loading-row"><td colspan="5">Carregando...</td></tr>
+                            }
+                            else if (!ChamadosFiltrados.Any())
+                            {
+                                <tr class="empty-row"><td colspan="5">Nenhum chamado encontrado.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in ChamadosFiltrados)
+                                {
+                                    <tr>
+                                        <td><div class="cell-title">@c.Titulo</div><div class="cell-sub">#@c.Id</div></td>
+                                        <td style="color:var(--text-muted);">@c.Usuario</td>
+                                        <td style="color:var(--text-muted);">@NomeTecnico(c.TecnicoId)</td>
+                                        <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">@c.DataAbertura.ToString("dd/MM/yy HH:mm")</td>
+                                        <td><span class="badge @BadgeClass(c.Status)"><span class="badge-dot"></span>@StatusLabel(c.Status)</span></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (_view == "usuarios")
+            {
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-title">Usuários cadastrados</span>
+                        <div class="tab-pills">
+                            <button class="tab-pill @(_filtroUsuario == null ? "active" : "")" @onclick="() => _filtroUsuario = null">Todos</button>
+                            <button class="tab-pill @(_filtroUsuario == PerfilEnum.Admin ? "active" : "")" @onclick="() => _filtroUsuario = PerfilEnum.Admin">Admin</button>
+                            <button class="tab-pill @(_filtroUsuario == PerfilEnum.Tecnico ? "active" : "")" @onclick="() => _filtroUsuario = PerfilEnum.Tecnico">Técnicos</button>
+                            <button class="tab-pill @(_filtroUsuario == PerfilEnum.Usuario ? "active" : "")" @onclick="() => _filtroUsuario = PerfilEnum.Usuario">Usuários</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Ações</th></tr></thead>
+                        <tbody>
+                            @if (_carregando)
+                            {
+                                <tr class="loading-row"><td colspan="4">Carregando...</td></tr>
+                            }
+                            else if (!UsuariosFiltrados.Any())
+                            {
+                                <tr class="empty-row"><td colspan="4">Nenhum usuário encontrado.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var u in UsuariosFiltrados)
+                                {
+                                    <tr>
+                                        <td><div class="cell-title">@u.Nome</div><div class="cell-sub">#@u.Id</div></td>
+                                        <td style="color:var(--text-muted);font-size:13px;">@u.Email</td>
+                                        <td><span class="perfil-badge @PerfilClass(u.Perfil)">@u.Perfil</span></td>
+                                        <td>
+                                            <div class="actions">
+                                                <button class="btn-sm" @onclick="() => AbrirModalEditar(u)">✏ Editar</button>
+                                                <button class="btn-sm danger" @onclick="() => AbrirModalDeletar(u)">✕ Deletar</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+</div>
+
+@if (_modalUsuario)
+{
+    <div class="overlay" @onclick="() => _modalUsuario = false">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-head">
+                <h3>@(_editandoUsuario?.Id > 0 ? "Editar usuário" : "Novo usuário")</h3>
+                <p>Preencha os dados do usuário.</p>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(_modalErro))
+                {
+                    <div class="err-msg">@_modalErro</div>
+                }
+                <div class="field">
+                    <label>Nome</label>
+                    <input type="text" @bind="_formNome" placeholder="Nome completo" />
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" @bind="_formEmail" placeholder="email@exemplo.com" />
+                </div>
+                <div class="field">
+                    <label>Senha @(_editandoUsuario?.Id > 0 ? "(deixe em branco para manter)" : "")</label>
+                    <input type="password" @bind="_formSenha" placeholder="••••••••" />
+                </div>
+                <div class="field">
+                    <label>Perfil</label>
+                    <select @bind="_formPerfil">
+                        <option value="@PerfilEnum.Usuario">Usuário</option>
+                        <option value="@PerfilEnum.Tecnico">Técnico</option>
+                        <option value="@PerfilEnum.Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn-cancel" @onclick="() => _modalUsuario = false">Cancelar</button>
+                <button class="btn-submit" @onclick="SalvarUsuario" disabled="@_salvando">
+                    @(_salvando ? "Salvando..." : "Salvar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_modalDeletar)
+{
+    <div class="overlay" @onclick="() => _modalDeletar = false">
+        <div class="modal" @onclick:stopPropagation="true">
+            <div class="modal-head">
+                <h3>Deletar usuário</h3>
+                <p>Tem certeza que deseja deletar <strong>@_editandoUsuario?.Nome</strong>? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-foot" style="padding-top:24px;">
+                <button class="btn-cancel" @onclick="() => _modalDeletar = false">Cancelar</button>
+                <button class="btn-delete" @onclick="DeletarUsuario" disabled="@_salvando">
+                    @(_salvando ? "Deletando..." : "Deletar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_toastVisivel)
+{
+    <div class="toast"><span class="toast-dot"></span>@_toastMsg</div>
+}
+
+@code {
+    private List<Chamado> _chamados = new();
+    private List<ModelUsuario> _usuarios = new();
+    private string _view = "dashboard";
+    private StatusChamado? _filtroChamado = null;
+    private PerfilEnum? _filtroUsuario = null;
+    private bool _carregando = true;
+    private bool _dark = true;
+    private bool _toastVisivel = false;
+    private string _toastMsg = "";
+
+    private bool _modalUsuario = false;
+    private bool _modalDeletar = false;
+    private bool _salvando = false;
+    private string _modalErro = "";
+    private ModelUsuario? _editandoUsuario = null;
+    private string _formNome = "";
+    private string _formEmail = "";
+    private string _formSenha = "";
+    private PerfilEnum _formPerfil = PerfilEnum.Usuario;
+
+    private IEnumerable<Chamado> ChamadosFiltrados =>
+        _filtroChamado == null ? _chamados : _chamados.Where(c => c.Status == _filtroChamado);
+
+    private IEnumerable<ModelUsuario> UsuariosFiltrados =>
+        _filtroUsuario == null ? _usuarios : _usuarios.Where(u => u.Perfil == _filtroUsuario);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var saved = await JS.InvokeAsync<string>("localStorage.getItem", "bugo_theme");
+        _dark = saved != "light";
+        await CarregarTudo();
+    }
+
+    private async Task ToggleTheme()
+    {
+        _dark = !_dark;
+        await JS.InvokeVoidAsync("localStorage.setItem", "bugo_theme", _dark ? "dark" : "light");
+    }
+
+    private async Task CarregarTudo()
+    {
+        _carregando = true;
+        try
+        {
+            _chamados = await Http.GetFromJsonAsync<List<Chamado>>("api/chamados") ?? new();
+            _usuarios = await Http.GetFromJsonAsync<List<ModelUsuario>>("api/usuarios") ?? new();
+        }
+        catch { }
+        finally { _carregando = false; }
+    }
+
+    private void AbrirModalNovoUsuario()
+    {
+        _editandoUsuario = new ModelUsuario();
+        _formNome = ""; _formEmail = ""; _formSenha = "";
+        _formPerfil = PerfilEnum.Usuario; _modalErro = "";
+        _modalUsuario = true;
+    }
+
+    private void AbrirModalEditar(ModelUsuario u)
+    {
+        _editandoUsuario = u;
+        _formNome = u.Nome; _formEmail = u.Email;
+        _formSenha = ""; _formPerfil = u.Perfil;
+        _modalErro = ""; _modalUsuario = true;
+    }
+
+    private void AbrirModalDeletar(ModelUsuario u)
+    {
+        _editandoUsuario = u;
+        _modalDeletar = true;
+    }
+
+    private async Task SalvarUsuario()
+    {
+        _modalErro = "";
+        if (string.IsNullOrWhiteSpace(_formNome)) { _modalErro = "Informe o nome."; return; }
+        if (string.IsNullOrWhiteSpace(_formEmail)) { _modalErro = "Informe o email."; return; }
+
+        _salvando = true;
+        try
+        {
+            var usuario = new ModelUsuario
+            {
+                Id = _editandoUsuario?.Id ?? 0,
+                Nome = _formNome,
+                Email = _formEmail,
+                Senha = _formSenha,
+                Perfil = _formPerfil
+            };
+
+            HttpResponseMessage response;
+
+            if (usuario.Id > 0)
+                response = await Http.PutAsJsonAsync($"api/usuarios/{usuario.Id}", usuario);
+            else
+                response = await Http.PostAsJsonAsync("api/usuarios", usuario);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _modalUsuario = false;
+                await CarregarTudo();
+                await MostrarToast(usuario.Id > 0 ? "Usuário atualizado!" : "Usuário criado!");
+            }
+            else { _modalErro = "Erro ao salvar usuário."; }
+        }
+        catch { _modalErro = "Erro ao conectar com o servidor."; }
+        finally { _salvando = false; }
+    }
+
+    private async Task DeletarUsuario()
+    {
+        if (_editandoUsuario == null) return;
+        _salvando = true;
+        try
+        {
+            var response = await Http.DeleteAsync($"api/usuarios/{_editandoUsuario.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                _modalDeletar = false;
+                await CarregarTudo();
+                await MostrarToast("Usuário deletado.");
+            }
+        }
+        catch { }
+        finally { _salvando = false; }
+    }
+
+    private string NomeTecnico(int? id)
+    {
+        if (id == null) return "— sem técnico";
+        var t = _usuarios.FirstOrDefault(u => u.Id == id);
+        return t?.Nome ?? $"#{id}";
+    }
+
+    private string TituloView() => _view switch
+    {
+        "chamados" => "Chamados",
+        "usuarios" => "Usuários",
+        _ => "Dashboard"
+    };
+
+    private string SubtituloView() => _view switch
+    {
+        "chamados" => "Todos os chamados do sistema",
+        "usuarios" => "Gerencie os usuários da plataforma",
+        _ => "Visão geral do sistema"
+    };
+
+    private string Iniciais(string? nome)
+    {
+        if (string.IsNullOrEmpty(nome)) return "?";
+        var p = nome.Trim().Split(' ');
+        return p.Length >= 2 ? $"{p[0][0]}{p[1][0]}".ToUpper() : nome[0].ToString().ToUpper();
+    }
+
+    private string BadgeClass(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "badge-aberto",
+        StatusChamado.EmAndamento => "badge-andamento",
+        StatusChamado.Finalizado => "badge-finalizado",
+        _ => ""
+    };
+
+    private string StatusLabel(StatusChamado s) => s switch
+    {
+        StatusChamado.Aberto => "Aberto",
+        StatusChamado.EmAndamento => "Em andamento",
+        StatusChamado.Finalizado => "Finalizado",
+        _ => ""
+    };
+
+    private string PerfilClass(PerfilEnum p) => p switch
+    {
+        PerfilEnum.Admin => "perfil-admin",
+        PerfilEnum.Tecnico => "perfil-tecnico",
+        _ => "perfil-usuario"
+    };
+
+    private async Task MostrarToast(string msg)
+    {
+        _toastMsg = msg; _toastVisivel = true; StateHasChanged();
+        await Task.Delay(3000);
+        _toastVisivel = false; StateHasChanged();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+}

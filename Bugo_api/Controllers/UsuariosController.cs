@@ -1,146 +1,158 @@
-﻿using Bugo_shared.DTOs;
-using Bugo_shared.Models;
+﻿using Bugo_shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Bugo_blazor.Controllers
+namespace Bugo_blazor.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UsuariosController : ControllerBase
 {
+    private readonly Services.UsuarioService _service;
+    private readonly IConfiguration _config;
 
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsuariosController : ControllerBase
+    public UsuariosController(Services.UsuarioService service, IConfiguration config)
     {
-        private readonly Services.UsuarioService _service;
-        private readonly IConfiguration _config;
+        _service = service;
+        _config = config;
+    }
 
-        public UsuariosController(Services.UsuarioService service, IConfiguration config)
+    [HttpGet]
+    public IActionResult Get()
+    {
+        try
         {
-            _service = service;
-            _config = config;
+            var usuarios = _service.GetAll();
+            return Ok(usuarios);
         }
-
-        [HttpGet]
-        public IActionResult Get()
+        catch (Exception ex)
         {
-            try
-            {
-                var usuarios = _service.GetAll();
-                return Ok(usuarios);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Erro ao buscar usuários", error = ex.Message });
-            }
+            return StatusCode(500, new { message = "Erro ao buscar usuários", error = ex.Message });
         }
+    }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] Usuario usuario)
+    [HttpGet("{id}")]
+    public IActionResult GetPorId(int id)
+    {
+        try
         {
-            try
-            {
-                if (usuario == null)
-                    return BadRequest(new { message = "Usuário não pode ser nulo" });
+            var usuario = _service.GetAll().FirstOrDefault(u => u.Id == id);
+            if (usuario == null)
+                return NotFound(new { message = "Usuário não encontrado" });
 
-                var novo = _service.Create(usuario);
-                return CreatedAtAction(nameof(Get), new { id = novo.Id }, novo);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Erro ao criar usuário", error = ex.Message });
-            }
+            return Ok(usuario);
         }
-
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        catch (Exception ex)
         {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Senha))
-                    return BadRequest(new { message = "Email e senha são obrigatórios" });
-
-                var usuario = _service.Login(request.Email, request.Senha);
-                if (usuario == null)
-                    return Unauthorized(new { message = "Email ou senha inválidos" });
-
-                var token = GerarToken(usuario);
-
-                return Ok(new { token, usuario.Id, usuario.Email, usuario.Nome, usuario.Perfil });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Erro ao fazer login", error = ex.Message });
-            }
+            return StatusCode(500, new { message = "Erro ao buscar usuário", error = ex.Message });
         }
+    }
 
-        private string GerarToken(Usuario usuario)
+    [HttpPost]
+    public IActionResult Post([FromBody] Usuario usuario)
+    {
+        try
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _config["Jwt:Key"] ?? "bugo-secret-key-2024-muito-segura!!"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            if (usuario == null)
+                return BadRequest(new { message = "Usuário não pode ser nulo" });
 
-            var claims = new[]
-            {
-        new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-        new Claim(ClaimTypes.Email, usuario.Email),
-        new Claim(ClaimTypes.Name, usuario.Nome)
-    };
-
-            var token = new JwtSecurityToken(
-                issuer: "bugo-api",
-                audience: "bugo-blazor",
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(8),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            usuario.Id = 0;
+            var novo = _service.Create(usuario);
+            return CreatedAtAction(nameof(GetPorId), new { id = novo.Id }, novo);
         }
-
-        [HttpGet("{id}")]
-        public IActionResult GetPorId(int id)
+        catch (Exception ex)
         {
-            try
-            {
-                var usuario = _service.GetAll().FirstOrDefault(u => u.Id == id);
-                if (usuario == null)
-                    return NotFound(new { message = "Usuário não encontrado" });
-
-                return Ok(usuario);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Erro ao buscar usuário", error = ex.Message });
-            }
+            return StatusCode(500, new { message = "Erro ao criar usuário", error = ex.Message });
         }
+    }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, Usuario usuario)
+    [HttpPost("login")]
+    public IActionResult Login([FromBody] LoginRequest request)
+    {
+        try
+        {
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Senha))
+                return BadRequest(new { message = "Email e senha são obrigatórios" });
+
+            var usuario = _service.Login(request.Email, request.Senha);
+            if (usuario == null)
+                return Unauthorized(new { message = "Email ou senha inválidos" });
+
+            var token = GerarToken(usuario);
+            return Ok(new { token, usuario.Id, usuario.Email, usuario.Nome, usuario.Perfil });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao fazer login", error = ex.Message });
+        }
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Update(int id, [FromBody] Usuario usuario)
+    {
+        try
         {
             var update = _service.Update(id, usuario);
 
-            if (update != null)
-                return NotFound(new { mensage = "Usuário não encontrado" });
+            if (update == null)
+                return NotFound(new { message = "Usuário não encontrado" });
 
             return Ok(update);
         }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        catch (Exception ex)
         {
-            var delete = _service.Delete(id);
+            return StatusCode(500, new { message = "Erro ao atualizar usuário", error = ex.Message });
+        }
+    }
 
-            if (delete == false)
-                return NotFound(new { mensage = "Usuário não encontrado" });
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        try
+        {
+            var result = _service.Delete(id);
+
+            if (!result)
+                return NotFound(new { message = "Usuário não encontrado" });
 
             return NoContent();
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao deletar usuário", error = ex.Message });
+        }
     }
-    public class LoginRequest
+
+    private string GerarToken(Usuario usuario)
     {
-        public string Email { get; set; } = "";
-        public string Senha { get; set; } = "";
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            _config["Jwt:Key"] ?? "bugo-secret-key-2024-muito-segura!!"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new Claim(ClaimTypes.Email, usuario.Email),
+            new Claim(ClaimTypes.Name, usuario.Nome)
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: "bugo-api",
+            audience: "bugo-blazor",
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(8),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
+}
+
+public class LoginRequest
+{
+    public string Email { get; set; } = "";
+    public string Senha { get; set; } = "";
 }
